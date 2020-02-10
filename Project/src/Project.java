@@ -1,5 +1,8 @@
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -41,6 +44,8 @@ public class Project extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 694, 503);
 		contentPane = new JPanel();
+		contentPane.setBackground(Color.DARK_GRAY);
+		contentPane.setForeground(Color.BLACK);
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
@@ -55,6 +60,7 @@ public class Project extends JFrame {
 		textField.setColumns(10);
 		
 		JLabel lblGroupManagement = new JLabel("Group Management");
+		lblGroupManagement.setForeground(Color.WHITE);
 		lblGroupManagement.setBounds(20, 45, 133, 14);
 		contentPane.add(lblGroupManagement);
 		
@@ -71,6 +77,7 @@ public class Project extends JFrame {
 		contentPane.add(btnDelete);
 		
 		JLabel lblOnlineUser = new JLabel("Online Users");
+		lblOnlineUser.setForeground(Color.WHITE);
 		lblOnlineUser.setBounds(10, 135, 98, 14);
 		contentPane.add(lblOnlineUser);
 		
@@ -79,14 +86,16 @@ public class Project extends JFrame {
 		contentPane.add(textArea);
 		
 		JLabel lblNewLabel = new JLabel("Groups");
+		lblNewLabel.setForeground(Color.WHITE);
 		lblNewLabel.setBounds(145, 135, 133, 14);
 		contentPane.add(lblNewLabel);
 		
 		JTextArea textArea_1 = new JTextArea();
 		textArea_1.setBounds(145, 160, 133, 258);
 		contentPane.add(textArea_1);
-		
+			
 		JLabel lblConversation = new JLabel("Conversation");
+		lblConversation.setForeground(Color.WHITE);
 		lblConversation.setBounds(288, 135, 243, 14);
 		contentPane.add(lblConversation);
 		
@@ -107,5 +116,14 @@ public class Project extends JFrame {
 		textField_2.setBounds(10, 70, 267, 20);
 		contentPane.add(textField_2);
 		textField_2.setColumns(10);
+		
+		JButton btnProfile = new JButton("Profile");
+		btnProfile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+			}
+		});
+		btnProfile.setBounds(367, 11, 89, 23);
+		contentPane.add(btnProfile);
 	}
 }
