@@ -120,6 +120,10 @@ public class Project extends JFrame {
 		JButton btnProfile = new JButton("Profile");
 		btnProfile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				chatProfile frame = new chatProfile();
+				frame.setLocationRelativeTo(null);
+				frame.setVisible(true);
+				dispose();			
 				
 			}
 		});
