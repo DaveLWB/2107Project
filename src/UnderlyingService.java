@@ -12,10 +12,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class UnderlyingService {
 	private static final int PORT = 6789;
-	private static final String DELIMITER = "+++";
+	private static final String DELIMITER = "---";
 	private static final String REPLY_SUFFIX = "_re";
 	private static final int PREFIX_SIZE = 40;
 	
@@ -45,7 +46,9 @@ public class UnderlyingService {
 	public UnderlyingService(UnderlyingActivityListener activityListener) throws IOException {
 		this.activityListener = activityListener;
 		address = InetAddress.getByName(UNDERLYING_IP);
-		underlyingSocket.setLoopbackMode(true);
+		underlyingSocket = new MulticastSocket(PORT);
+		underlyingSocket.joinGroup(address);
+//		underlyingSocket.setLoopbackMode(true);
 		handleMessages();
 	}
 	
@@ -108,8 +111,6 @@ public class UnderlyingService {
 	}
 	
 	private void handleMessages() throws IOException {
-		underlyingSocket = new MulticastSocket(PORT);
-		underlyingSocket.joinGroup(address);
 		new Thread(new Runnable() {
 			
 			@Override
@@ -118,6 +119,7 @@ public class UnderlyingService {
 				DatagramPacket dgpReceived = new DatagramPacket(buf, buf.length);
 				while (true) {
 					try {
+//						System.out.println("Waiting for message");
 						underlyingSocket.receive(dgpReceived);
 					} catch (IOException e) {
 						System.out.println("Error receiving packet from underlying socket");
@@ -127,6 +129,7 @@ public class UnderlyingService {
 					
 					byte[] data = dgpReceived.getData();
 					String prefix = new String(data, 0, 40);
+//					System.out.println("handlemessage prefix: " + prefix);
 					if (prefix.startsWith(REPLY_PREFIX_REQUEST_LATEST_MESSAGES)) {
 						String replyId = prefix.split(DELIMITER)[1];
 						if (listenerMap.containsKey(replyId)) {
@@ -141,14 +144,25 @@ public class UnderlyingService {
 					
 					try {
 						String msg = new String(data, 0, data.length);
-						if (msg.startsWith(PREFIX_CHECK_EXISTING_USER)) {
+						if (msg.startsWith(REPLY_PREFIX_CHECK_EXISTING_USER)) {
+							List<String> args = getArguments(REPLY_PREFIX_CHECK_EXISTING_USER, msg);
+							String replyId = args.get(0);
+							
+							UnderlyingReplyListener listener = listenerMap.remove(replyId);
+							if (listener != null) {
+								listener.onReply(args);
+								stopTimeout(replyId);
+							}
+						} else if (msg.startsWith(PREFIX_CHECK_EXISTING_USER)) {
 							List<String> args = getArguments(PREFIX_CHECK_EXISTING_USER, msg);
 							String replyId = args.get(0);
 							String username = args.get(1);
+//							System.out.println("replyId: " + replyId + ", username: "+ username + ", currentUser: " + currentUsername);
 							if (username.equals(currentUsername)) {
+//								System.out.println("current user is equal");
 								sendMessage(createMessage(REPLY_PREFIX_CHECK_EXISTING_USER, replyId));
 							}
-						} else if (msg.startsWith(REPLY_PREFIX_CHECK_EXISTING_USER)) {
+						} else if (msg.startsWith(REPLY_PREFIX_CHECK_EXISTING_GROUP)) {
 							List<String> args = getArguments(REPLY_PREFIX_CHECK_EXISTING_USER, msg);
 							String replyId = args.get(0);
 							
@@ -164,14 +178,15 @@ public class UnderlyingService {
 							if (groupName.equals(currentGroupName)) {
 								sendMessage(createMessage(PREFIX_CHECK_EXISTING_GROUP, replyId, currentGroupName));
 							}
-						} else if (msg.startsWith(REPLY_PREFIX_CHECK_EXISTING_GROUP)) {
-							List<String> args = getArguments(REPLY_PREFIX_CHECK_EXISTING_USER, msg);
+						} else if (msg.startsWith(REPLY_PREFIX_BROADCAST_USERNAME)) {
+							List<String> args = getArguments(REPLY_PREFIX_BROADCAST_USERNAME, msg);
 							String replyId = args.get(0);
+							String username = args.get(1);
 							
-							UnderlyingReplyListener listener = listenerMap.remove(replyId);
-							if (listener != null) {
-								listener.onReply(args);
-								stopTimeout(replyId);
+							if (listenerMap.containsKey(replyId)) {
+								if (activityListener != null) {
+									activityListener.onUserOnline(username);
+								}
 							}
 						} else if (msg.startsWith(PREFIX_BROADCAST_USERNAME)) {
 							List<String> args = getArguments(PREFIX_BROADCAST_USERNAME, msg);
@@ -183,16 +198,6 @@ public class UnderlyingService {
 							}
 							if (currentUsername != null) {							
 								sendMessage(createMessage(REPLY_PREFIX_BROADCAST_USERNAME, replyId, currentUsername));
-							}
-						} else if (msg.startsWith(REPLY_PREFIX_BROADCAST_USERNAME)) {
-							List<String> args = getArguments(REPLY_PREFIX_BROADCAST_USERNAME, msg);
-							String replyId = args.get(0);
-							String username = args.get(1);
-							
-							if (listenerMap.containsKey(replyId)) {
-								if (activityListener != null) {
-									activityListener.onUserOnline(username);
-								}
 							}
 						} else if (msg.startsWith(PREFIX_ADD_USER_TO_GROUP)) {
 							List<String> args = getArguments(PREFIX_ADD_USER_TO_GROUP, msg);
@@ -241,7 +246,7 @@ public class UnderlyingService {
 	}
 	
 	private void startTimeout(String replyId) {
-		executorService.schedule(new Runnable() {
+		ScheduledFuture<?> future = executorService.schedule(new Runnable() {
 
 			@Override
 			public void run() {
@@ -251,6 +256,7 @@ public class UnderlyingService {
 				}
 			}
 		}, 3, TimeUnit.SECONDS);
+		timeoutMap.put(replyId, future);
 	}
 	
 	private void startRequestLatestMessageTimeout(String replyId) {
@@ -277,7 +283,7 @@ public class UnderlyingService {
 	
 	private static List<String> getArguments(String prefix, String message) {
 		String argumentPortion = message.substring(prefix.length());
-		return Arrays.asList(argumentPortion.split(DELIMITER));
+		return Arrays.stream(argumentPortion.split(DELIMITER)).map(p -> p.trim()).collect(Collectors.toList());
 	}
 	
 	
