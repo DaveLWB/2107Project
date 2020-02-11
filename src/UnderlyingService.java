@@ -40,8 +40,7 @@ public class UnderlyingService {
 	private List<GroupMessage> latestMessagesBuffer = new ArrayList<GroupMessage>(100);
 	
 	public String currentUsername;
-	public String currentGroupName;
-	public String currentIp;
+	public final HashMap<String, String> groupNameIpMap = new HashMap<String, String>();
 	
 	public UnderlyingService(UnderlyingActivityListener activityListener) throws IOException {
 		this.activityListener = activityListener;
@@ -88,9 +87,13 @@ public class UnderlyingService {
 		}
 	}
 	
-	public void addUserToGroup(String username) {
+	public void addUserToGroup(String username, String groupName) {
 		try {
-			sendMessage(createMessage(PREFIX_ADD_USER_TO_GROUP, username, currentGroupName, currentIp));
+			String groupIp = groupNameIpMap.get(groupName);
+			if (groupIp == null) {
+				throw new IllegalArgumentException("Invalid group name that is not in map");
+			}
+			sendMessage(createMessage(PREFIX_ADD_USER_TO_GROUP, username, groupName, groupIp));
 		} catch (IOException e) {
 			System.out.println("Failed to send " + PREFIX_ADD_USER_TO_GROUP);
 			e.printStackTrace();
@@ -163,7 +166,7 @@ public class UnderlyingService {
 								sendMessage(createMessage(REPLY_PREFIX_CHECK_EXISTING_USER, replyId));
 							}
 						} else if (msg.startsWith(REPLY_PREFIX_CHECK_EXISTING_GROUP)) {
-							List<String> args = getArguments(REPLY_PREFIX_CHECK_EXISTING_USER, msg);
+							List<String> args = getArguments(REPLY_PREFIX_CHECK_EXISTING_GROUP, msg);
 							String replyId = args.get(0);
 							
 							UnderlyingReplyListener listener = listenerMap.remove(replyId);
@@ -175,8 +178,9 @@ public class UnderlyingService {
 							List<String> args = getArguments(PREFIX_CHECK_EXISTING_GROUP, msg);
 							String replyId = args.get(0);
 							String groupName = args.get(1);
-							if (groupName.equals(currentGroupName)) {
-								sendMessage(createMessage(PREFIX_CHECK_EXISTING_GROUP, replyId, currentGroupName));
+							String groupIp = groupNameIpMap.get(groupName);
+							if (groupIp != null) {
+								sendMessage(createMessage(REPLY_PREFIX_CHECK_EXISTING_GROUP, replyId, groupName, groupIp));
 							}
 						} else if (msg.startsWith(REPLY_PREFIX_BROADCAST_USERNAME)) {
 							List<String> args = getArguments(REPLY_PREFIX_BROADCAST_USERNAME, msg);
