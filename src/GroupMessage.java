@@ -13,13 +13,11 @@ public class GroupMessage implements Serializable {
 	private static final long serialVersionUID = 5997286769086097191L;
 
 	public final long timestamp;
-	public final String username;
 	public final String message;
 	public final String groupName;
 
-	public GroupMessage(long timestamp, String username, String message, String groupName) {
+	public GroupMessage(long timestamp, String message, String groupName) {
 		this.timestamp = timestamp;
-		this.username = username;
 		this.message = message;
 		this.groupName = groupName;
 	}

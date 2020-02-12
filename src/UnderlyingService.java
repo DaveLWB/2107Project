@@ -1,3 +1,5 @@
+import com.sun.org.apache.xpath.internal.operations.Mult;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -30,7 +32,7 @@ public class UnderlyingService {
 	private static final String PREFIX_ADD_USER_TO_GROUP = "___add_user_to_group";
 	private static final String PREFIX_REQUEST_LATEST_MESSAGES = "___request_latest_messages";
 	private static final String REPLY_PREFIX_REQUEST_LATEST_MESSAGES = PREFIX_REQUEST_LATEST_MESSAGES + REPLY_SUFFIX;
-	
+
 	private MulticastSocket underlyingSocket;
 	private Map<String, UnderlyingReplyListener> listenerMap = new HashMap<>();
 	private Map<String, ScheduledFuture<?>> timeoutMap = new HashMap<>();
@@ -38,7 +40,8 @@ public class UnderlyingService {
 	private UnderlyingActivityListener activityListener;
 	private InetAddress address;
 	private List<GroupMessage> latestMessagesBuffer = new ArrayList<GroupMessage>(100);
-	
+
+
 	public String currentUsername;
 	public final HashMap<String, String> groupNameIpMap = new HashMap<String, String>();
 	
@@ -100,10 +103,10 @@ public class UnderlyingService {
 		}
 	}
 	
-	public void requestLatestMessages(String ownUsername, String groupName, UnderlyingReplyListener listener) {
+	public void requestLatestMessages(String ownUsername, String groupName) {
 		String replyId = createReplyId();
 		listenerMap.put(replyId, null);
-		startRequestLatestMessageTimeout(replyId);
+		startRequestLatestMessageTimeout(groupName, replyId);
 		try {
 			sendMessage(createMessage(PREFIX_REQUEST_LATEST_MESSAGES, replyId, ownUsername, groupName));
 		} catch (IOException e) {
@@ -112,16 +115,20 @@ public class UnderlyingService {
 			e.printStackTrace();
 		}
 	}
+
+
+
+
 	
 	private void handleMessages() throws IOException {
 		new Thread(new Runnable() {
 			
 			@Override
 			public void run() {
-				byte buf[] = new byte[1024];
-				DatagramPacket dgpReceived = new DatagramPacket(buf, buf.length);
 				while (true) {
-					try {
+
+                    byte buf[] = new byte[1024];
+                    DatagramPacket dgpReceived = new DatagramPacket(buf, buf.length);try {
 //						System.out.println("Waiting for message");
 						underlyingSocket.receive(dgpReceived);
 					} catch (IOException e) {
@@ -132,7 +139,8 @@ public class UnderlyingService {
 					
 					byte[] data = dgpReceived.getData();
 					String prefix = new String(data, 0, 40);
-//					System.out.println("handlemessage prefix: " + prefix);
+					String fullMessage = new String(data, 0, data.length);
+					System.out.println("handlemessage prefix: " + fullMessage);
 					if (prefix.startsWith(REPLY_PREFIX_REQUEST_LATEST_MESSAGES)) {
 						String replyId = prefix.split(DELIMITER)[1];
 						if (listenerMap.containsKey(replyId)) {
@@ -168,7 +176,10 @@ public class UnderlyingService {
 						} else if (msg.startsWith(REPLY_PREFIX_CHECK_EXISTING_GROUP)) {
 							List<String> args = getArguments(REPLY_PREFIX_CHECK_EXISTING_GROUP, msg);
 							String replyId = args.get(0);
-							
+							String groupName = args.get(1);
+							String ip = args.get(2);
+							groupNameIpMap.put(groupName, ip);
+
 							UnderlyingReplyListener listener = listenerMap.remove(replyId);
 							if (listener != null) {
 								listener.onReply(args);
@@ -207,7 +218,7 @@ public class UnderlyingService {
 							List<String> args = getArguments(PREFIX_ADD_USER_TO_GROUP, msg);
 							String username = args.get(0);
 							if (!username.equals(currentUsername)) {
-								return;
+							    continue;
 							}
 							String groupName = args.get(1);
 							String ip = args.get(2);
@@ -263,7 +274,7 @@ public class UnderlyingService {
 		timeoutMap.put(replyId, future);
 	}
 	
-	private void startRequestLatestMessageTimeout(String replyId) {
+	private void startRequestLatestMessageTimeout(String groupName, String replyId) {
 		executorService.schedule(new Runnable() {
 
 			@Override
@@ -273,7 +284,7 @@ public class UnderlyingService {
 					listener.onTimeout();
 				}
 				if (activityListener != null) {
-					activityListener.onRequestLatestMessageResult(latestMessagesBuffer);
+					activityListener.onRequestLatestMessageResult(groupName, latestMessagesBuffer);
 				}
 				latestMessagesBuffer.clear();
 			}
