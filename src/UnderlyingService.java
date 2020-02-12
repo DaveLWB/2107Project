@@ -1,5 +1,3 @@
-import com.sun.org.apache.xpath.internal.operations.Mult;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -32,6 +30,7 @@ public class UnderlyingService {
 	private static final String PREFIX_ADD_USER_TO_GROUP = "___add_user_to_group";
 	private static final String PREFIX_REQUEST_LATEST_MESSAGES = "___request_latest_messages";
 	private static final String REPLY_PREFIX_REQUEST_LATEST_MESSAGES = PREFIX_REQUEST_LATEST_MESSAGES + REPLY_SUFFIX;
+	private static final String PREFIX_USER_LEFT = "___user_left";
 
 	private MulticastSocket underlyingSocket;
 	private Map<String, UnderlyingReplyListener> listenerMap = new HashMap<>();
@@ -103,32 +102,39 @@ public class UnderlyingService {
 		}
 	}
 	
-	public void requestLatestMessages(String ownUsername, String groupName) {
+	public void requestLatestMessages(String groupName) {
 		String replyId = createReplyId();
 		listenerMap.put(replyId, null);
 		startRequestLatestMessageTimeout(groupName, replyId);
 		try {
-			sendMessage(createMessage(PREFIX_REQUEST_LATEST_MESSAGES, replyId, ownUsername, groupName));
+			sendMessage(createMessage(PREFIX_REQUEST_LATEST_MESSAGES, replyId, groupName));
 		} catch (IOException e) {
 			System.out.println("Failed to send " + PREFIX_REQUEST_LATEST_MESSAGES);
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
-
-
-
-
+	
+	public void broadcastExit() {
+		if (currentUsername == null) return;
+		
+		try {
+			sendMessage(createMessage(PREFIX_USER_LEFT, currentUsername));
+		} catch (IOException e) {
+			System.out.println("Failed to send " + PREFIX_USER_LEFT);
+			e.printStackTrace();
+		}
+	}
 	
 	private void handleMessages() throws IOException {
 		new Thread(new Runnable() {
 			
 			@Override
 			public void run() {
+				byte buf[] = new byte[1024];
+                DatagramPacket dgpReceived = new DatagramPacket(buf, buf.length);
 				while (true) {
-
-                    byte buf[] = new byte[1024];
-                    DatagramPacket dgpReceived = new DatagramPacket(buf, buf.length);try {
+					try {
 //						System.out.println("Waiting for message");
 						underlyingSocket.receive(dgpReceived);
 					} catch (IOException e) {
@@ -138,25 +144,13 @@ public class UnderlyingService {
 					}
 					
 					byte[] data = dgpReceived.getData();
-					String prefix = new String(data, 0, 40);
-					String fullMessage = new String(data, 0, data.length);
-					System.out.println("handlemessage prefix: " + fullMessage);
-					if (prefix.startsWith(REPLY_PREFIX_REQUEST_LATEST_MESSAGES)) {
-						String replyId = prefix.split(DELIMITER)[1];
-						if (listenerMap.containsKey(replyId)) {
-							ByteBuffer bb = ByteBuffer.wrap(data);
-							bb.position(40);
-							byte[] slice = bb.slice().array();
-							GroupMessage gm = GroupMessage.fromBytes(slice);
-							latestMessagesBuffer.add(gm);
-						}
-						return;
-					}
-					
 					try {
-						String msg = new String(data, 0, data.length);
-						if (msg.startsWith(REPLY_PREFIX_CHECK_EXISTING_USER)) {
-							List<String> args = getArguments(REPLY_PREFIX_CHECK_EXISTING_USER, msg);
+						String prefix = new String(data, 0, PREFIX_SIZE);
+						String msg = new String(data, PREFIX_SIZE, data.length - PREFIX_SIZE);
+						System.out.println("handlemessage prefix: " + prefix + ", msg: " + msg);
+
+						List<String> args = getArguments(msg);
+						if (prefix.startsWith(REPLY_PREFIX_CHECK_EXISTING_USER)) {
 							String replyId = args.get(0);
 							
 							UnderlyingReplyListener listener = listenerMap.remove(replyId);
@@ -164,8 +158,7 @@ public class UnderlyingService {
 								listener.onReply(args);
 								stopTimeout(replyId);
 							}
-						} else if (msg.startsWith(PREFIX_CHECK_EXISTING_USER)) {
-							List<String> args = getArguments(PREFIX_CHECK_EXISTING_USER, msg);
+						} else if (prefix.startsWith(PREFIX_CHECK_EXISTING_USER)) {
 							String replyId = args.get(0);
 							String username = args.get(1);
 //							System.out.println("replyId: " + replyId + ", username: "+ username + ", currentUser: " + currentUsername);
@@ -173,8 +166,7 @@ public class UnderlyingService {
 //								System.out.println("current user is equal");
 								sendMessage(createMessage(REPLY_PREFIX_CHECK_EXISTING_USER, replyId));
 							}
-						} else if (msg.startsWith(REPLY_PREFIX_CHECK_EXISTING_GROUP)) {
-							List<String> args = getArguments(REPLY_PREFIX_CHECK_EXISTING_GROUP, msg);
+						} else if (prefix.startsWith(REPLY_PREFIX_CHECK_EXISTING_GROUP)) {
 							String replyId = args.get(0);
 							String groupName = args.get(1);
 							String ip = args.get(2);
@@ -185,16 +177,14 @@ public class UnderlyingService {
 								listener.onReply(args);
 								stopTimeout(replyId);
 							}
-						} else if (msg.startsWith(PREFIX_CHECK_EXISTING_GROUP)) {
-							List<String> args = getArguments(PREFIX_CHECK_EXISTING_GROUP, msg);
+						} else if (prefix.startsWith(PREFIX_CHECK_EXISTING_GROUP)) {
 							String replyId = args.get(0);
 							String groupName = args.get(1);
 							String groupIp = groupNameIpMap.get(groupName);
 							if (groupIp != null) {
 								sendMessage(createMessage(REPLY_PREFIX_CHECK_EXISTING_GROUP, replyId, groupName, groupIp));
 							}
-						} else if (msg.startsWith(REPLY_PREFIX_BROADCAST_USERNAME)) {
-							List<String> args = getArguments(REPLY_PREFIX_BROADCAST_USERNAME, msg);
+						} else if (prefix.startsWith(REPLY_PREFIX_BROADCAST_USERNAME)) {
 							String replyId = args.get(0);
 							String username = args.get(1);
 							
@@ -203,8 +193,7 @@ public class UnderlyingService {
 									activityListener.onUserOnline(username);
 								}
 							}
-						} else if (msg.startsWith(PREFIX_BROADCAST_USERNAME)) {
-							List<String> args = getArguments(PREFIX_BROADCAST_USERNAME, msg);
+						} else if (prefix.startsWith(PREFIX_BROADCAST_USERNAME)) {
 							String replyId = args.get(0);
 							String username = args.get(1);
 							
@@ -214,35 +203,38 @@ public class UnderlyingService {
 							if (currentUsername != null) {							
 								sendMessage(createMessage(REPLY_PREFIX_BROADCAST_USERNAME, replyId, currentUsername));
 							}
-						} else if (msg.startsWith(PREFIX_ADD_USER_TO_GROUP)) {
-							List<String> args = getArguments(PREFIX_ADD_USER_TO_GROUP, msg);
+						} else if (prefix.startsWith(PREFIX_ADD_USER_TO_GROUP)) {
 							String username = args.get(0);
 							if (!username.equals(currentUsername)) {
 							    continue;
 							}
 							String groupName = args.get(1);
 							String ip = args.get(2);
+							groupNameIpMap.put(groupName, ip);
 							if (activityListener != null) {
 								activityListener.onJoinGroup(groupName, ip);
 							}
-						} else if (msg.startsWith(PREFIX_REQUEST_LATEST_MESSAGES)) {
-							List<String> args = getArguments(PREFIX_ADD_USER_TO_GROUP, msg);
+						} else if (prefix.startsWith(REPLY_PREFIX_REQUEST_LATEST_MESSAGES)) {
 							String replyId = args.get(0);
-							String groupName = args.get(2);
+							String serializedMessage = args.get(1);
+							if (listenerMap.containsKey(replyId)) {
+								latestMessagesBuffer.add(new GroupMessage(serializedMessage));
+							}
+						} else if (prefix.startsWith(PREFIX_REQUEST_LATEST_MESSAGES)) {
+							String replyId = args.get(0);
+							String groupName = args.get(1);
 							
 							if (activityListener != null) {
 								List<GroupMessage> messages = activityListener.onRequestLatestMessages(groupName);
-								ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
 								for (GroupMessage message : messages) {
-									byteBuffer.put(prefix.getBytes());
-									byteBuffer.put(DELIMITER.getBytes());
-									byteBuffer.put(replyId.getBytes());
-									byteBuffer.position(PREFIX_SIZE);
-									byteBuffer.put(message.getBytes());
-									
-									DatagramPacket packet = new DatagramPacket(byteBuffer.array(), byteBuffer.position(), address, PORT);
-									underlyingSocket.send(packet);
+									sendMessage(createMessage(REPLY_PREFIX_REQUEST_LATEST_MESSAGES, replyId, message.serialize()));
 								}
+							}
+						} else if (prefix.startsWith(PREFIX_USER_LEFT)) {
+							String username = args.get(0);
+							
+							if (activityListener != null) {
+								activityListener.onUserOffline(username);
 							}
 						}
 					} catch (IOException e) {
@@ -296,9 +288,8 @@ public class UnderlyingService {
 		future.cancel(true);
 	}
 	
-	private static List<String> getArguments(String prefix, String message) {
-		String argumentPortion = message.substring(prefix.length());
-		return Arrays.stream(argumentPortion.split(DELIMITER)).map(p -> p.trim()).collect(Collectors.toList());
+	private static List<String> getArguments(String message) {
+		return Arrays.stream(message.split(DELIMITER)).map(p -> p.trim()).collect(Collectors.toList());
 	}
 	
 	
@@ -313,9 +304,13 @@ public class UnderlyingService {
 		ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
 		byteBuffer.put(prefix.getBytes());
 		byteBuffer.position(PREFIX_SIZE);
-		byteBuffer.put(String.join(DELIMITER, args).getBytes());
+		System.out.println("createMessage remaining: " + byteBuffer.remaining());
+		byte[] data = Utility.trimZeros(String.join(DELIMITER, args)).getBytes();
+		byteBuffer.put(data);
 		
 		
 		return byteBuffer.array();
 	}
+	
+	
 }

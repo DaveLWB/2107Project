@@ -1,17 +1,6 @@
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.util.Arrays;
 
-public class GroupMessage implements Serializable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 5997286769086097191L;
-
+public class GroupMessage {
 	public final long timestamp;
 	public final String message;
 	public final String groupName;
@@ -21,45 +10,33 @@ public class GroupMessage implements Serializable {
 		this.message = message;
 		this.groupName = groupName;
 	}
-
-	public byte[] getBytes() {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		ObjectOutputStream out = null;
-		try {
-			out = new ObjectOutputStream(bos);
-			out.writeObject(this);
-			out.flush();
-			return bos.toByteArray();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				bos.close();
-			} catch (IOException ex) {
-				// ignore close exception
-			}
-		}
-		return null;
+	
+	public GroupMessage(String serialized) {
+		String[] parts = serialized.split("#");
+		Integer[] lengths = Arrays.stream(parts[0].split(",")).map(Integer::parseInt).toArray(Integer[]::new);
+		
+		String data = parts[1];
+		int i = 0;
+		timestamp = Long.parseLong(data.substring(i, lengths[0]));
+		i = lengths[0] + lengths[1];
+		message = data.substring(lengths[0], i);
+		groupName = data.substring(i, i + lengths[2]);
 	}
 
-	public static GroupMessage fromBytes(byte[] bytes) {
-		ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-		ObjectInput in = null;
-		try {
-			in = new ObjectInputStream(bis);
-			GroupMessage o = (GroupMessage) in.readObject();
-			return o;
-		} catch (IOException | ClassNotFoundException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (in != null) {
-					in.close();
-				}
-			} catch (IOException ex) {
-				// ignore close exception
-			}
-		}
-		return null;
+	public String serialize() {
+		StringBuilder sb = new StringBuilder();
+		String timestamp = String.valueOf(this.timestamp);
+		sb.append(timestamp.length());
+		sb.append(",");
+		sb.append(message.length());
+		sb.append(",");
+		sb.append(groupName.length());
+		sb.append("#");
+		sb.append(timestamp);
+		sb.append(message);
+		sb.append(groupName);
+		String result = sb.toString();
+		System.out.println("serialize: " + result);
+		return result;
 	}
 }

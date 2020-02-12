@@ -1,16 +1,13 @@
-import com.sun.org.apache.xpath.internal.operations.Mult;
-
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.net.UnknownHostException;
-import java.security.acl.Group;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -21,6 +18,12 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 public class Project extends JFrame implements UnderlyingActivityListener {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 5119421811793569103L;
+
+	private static final int PORT = 6789;
 
 	private JPanel contentPane;
 	private JTextField tfName;
@@ -29,7 +32,7 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 	private JList<String> onlineUserList;
 	private JList<String> groupsList;
 	private JTextArea conversationTextArea;
-	private static final int PORT = 6789;
+	private Set<String> onlineUserSet = new HashSet<>();
 
 
 	public UnderlyingService mainBroadcastService;
@@ -56,6 +59,8 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 				}
 			}
 		});
+//		GroupMessage test = new GroupMessage(1, "abc", "abc");
+//		System.out.println(test.getBytes().length);
 	}
 
 
@@ -167,7 +172,15 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 
 		mainBroadcastService = getInstance();
 
+		
+		addWindowListener(new WindowAdapter() {
 
+			@Override
+			public void windowClosing(WindowEvent e) {
+				mainBroadcastService.broadcastExit();
+			}
+			
+		});
 
 			//Get all online users
 
@@ -260,9 +273,8 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 
 				if (!adjust) {
 
-					JList list = (JList) e.getSource();
-					Object value = list.getSelectedValue();
-					String selectedGroupName = (String) value;
+					JList<String> list = (JList<String>) e.getSource();
+					String selectedGroupName = list.getSelectedValue();
 					System.out.println(selectedGroupName);
 					activeGroup = selectedGroupName;
 
@@ -348,15 +360,9 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 		});
 
 
-
-
-
-
-
-
-
-
-
+		btnDelete.addActionListener(e -> {
+			mainBroadcastService.broadcastExit();
+		});
 
 
 
@@ -408,8 +414,7 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 						groupSocket.receive(dgpReceived);
 						byte[] data = dgpReceived.getData();
 						String message = new String(data, 0, data.length);
-						System.out.println(message);
-						GroupMessage gm = new GroupMessage(new java.util.Date().getTime(), message, groupName);
+						GroupMessage gm = new GroupMessage(new java.util.Date().getTime(), Utility.trimZeros(message), groupName);
 
 
 						List<GroupMessage> groupMessagesList = groupMessagesMap.get(groupName);
@@ -443,7 +448,15 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 	public void clearChat(){
 		conversationTextArea.setText("");
 	}
-
+	
+	private void updateOnlineList() {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				onlineUsers.clear();
+				onlineUserSet.forEach(onlineUsers::addElement);
+			}
+		});
+	}
 
 
 	// set Chat button to be true
@@ -471,18 +484,16 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 
 	@Override
 	public void onUserOnline(String username) {
-		if (!onlineUsers.contains(username)){
-			onlineUsers.addElement(username);
-		}
+		onlineUserSet.add(username);
+		updateOnlineList();
 	}
 
 
 
 	@Override
 	public void onUserOffline(String username) {
-		if (onlineUsers.contains(username)){
-			onlineUsers.removeElement(username);
-		}
+		onlineUserSet.remove(username);
+		updateOnlineList();
 	}
 
 
@@ -491,9 +502,11 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 	public void onJoinGroup(String groupName, String ip) {
 		System.out.println("On Join Group" + groupName + ip);
 		selectedGroupIP.put(groupName, ip);
-		selectedGroups.addElement(groupName);
+		
+		EventQueue.invokeLater(() -> selectedGroups.addElement(groupName));
+		
 		runGroupThreads(groupName, ip);
-		mainBroadcastService.requestLatestMessages(userName, groupName);
+		mainBroadcastService.requestLatestMessages(groupName);
 
 	}
 
