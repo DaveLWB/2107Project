@@ -54,7 +54,7 @@ public class chatProfile extends JFrame {
  /**
   * Create the frame.
   */
- public chatProfile() {
+ public chatProfile() {	 
   setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
   setBounds(100, 100, 760, 574);
   setMinimumSize(new Dimension(760, 470));
@@ -63,14 +63,6 @@ public class chatProfile extends JFrame {
   contentPane.setBackground(Color.LIGHT_GRAY);
   contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
   setContentPane(contentPane);
-  
-  JButton logoutBtn = new JButton("LOGOUT");
-  logoutBtn.setBounds(635, 19, 99, 27);
-  logoutBtn.setFont(new Font("Tahoma", Font.PLAIN, 15));
-  logoutBtn.addActionListener(new ActionListener() {
-   public void actionPerformed(ActionEvent e) {
-   }
-  });
   
   JButton backBtn = new JButton("< BACK");
   backBtn.setBounds(16, 19, 96, 27);
@@ -83,9 +75,9 @@ public class chatProfile extends JFrame {
 	   dispose();
    }
   });
-  PictureLabel.setBounds(36, 65, 321, 285);
+  PictureLabel.setBounds(0, 74, 376, 285);
   
-  PictureLabel.setIcon(new ImageIcon(new javax.swing.ImageIcon(getClass().getResource("profilepic.jpg")).getImage()));
+  PictureLabel.setIcon(new ImageIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/profilePix.jpg")).getImage()));
   PictureLabel.setBorder(new LineBorder(Color.LIGHT_GRAY, 5));
   
   JLabel showNameLabel = new JLabel("");
@@ -111,9 +103,9 @@ public class chatProfile extends JFrame {
   nameTextField.setColumns(10);
   
   // Set Profile Info
-  showNameLabel.setText("Johnny Sins");
+  showNameLabel.setText("");
   
-  JLabel showNumberLabel = new JLabel("5");
+  JLabel showNumberLabel = new JLabel("");
   showNumberLabel.setBounds(534, 80, 88, 22);
   showNumberLabel.setFont(new Font("Tahoma", Font.PLAIN, 15));
   
@@ -136,13 +128,20 @@ public class chatProfile extends JFrame {
   contentPane.add(PictureLabel);
   contentPane.add(noOfGroupLabel);
   contentPane.add(showNumberLabel);
-  contentPane.add(logoutBtn);
   contentPane.add(nameLabel);
   contentPane.add(nameTextField);
   contentPane.add(btnUpload);
   contentPane.add(btnUpdate);
   contentPane.add(backBtn);
   contentPane.add(showNameLabel);
+  
+  Project frame = new Project();
+  String name = frame.userName;
+  showNameLabel.setText(name);
+  int numGroup = frame.selectedGroup.getSize();
+  String numStr = Integer.toString(numGroup);
+  showNumberLabel.setText(numStr);
+  
  }
  
 private void uploadImage(java.awt.event.ActionEvent evt) {                                            
