@@ -133,16 +133,20 @@ public class chatProfile extends JFrame {
   contentPane.add(btnUpload);
   contentPane.add(btnUpdate);
   contentPane.add(backBtn);
-  contentPane.add(showNameLabel);
+  contentPane.add(showNameLabel); 
   
-  Project frame = new Project();
-  String name = frame.userName;
-  showNameLabel.setText(name);
-  int numGroup = frame.selectedGroup.getSize();
-  String numStr = Integer.toString(numGroup);
-  showNumberLabel.setText(numStr);
-  
+  //update the no. of group and user name fields
+  setInfo(showNameLabel, noOfGroupLabel); 
  }
+ 
+private void setInfo(Object o, Object i) {
+		Project frame = new Project();
+		String name = frame.userName;
+		((JLabel) o).setText(name);
+		int numGroup = frame.selectedGroup.getSize();
+		String numStr = Integer.toString(numGroup);
+		((JLabel) i).setText("Number of group(s): " + numStr);
+}
  
 private void uploadImage(java.awt.event.ActionEvent evt) {                                            
  JFileChooser filechooser = new JFileChooser();
