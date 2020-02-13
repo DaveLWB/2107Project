@@ -20,18 +20,19 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Project.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="259">
-              <caret line="283" column="81" selection-start-line="283" selection-start-column="81" selection-end-line="283" selection-end-column="81" />
+            <state relative-caret-position="-3070">
+              <caret line="216" column="33" lean-forward="true" selection-start-line="216" selection-start-column="33" selection-end-line="216" selection-end-column="33" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#1634#1650#0" expanded="true" />
-                <element signature="e#5278#5413#0" expanded="true" />
-                <element signature="e#5412#5413#0" expanded="true" />
-                <element signature="e#7894#7902#0" expanded="true" />
-                <element signature="e#12568#12569#0" expanded="true" />
-                <element signature="e#12607#12608#0" expanded="true" />
-                <element signature="e#14195#14196#0" expanded="true" />
-                <element signature="e#14249#14250#0" expanded="true" />
+                <element signature="e#1691#1707#0" expanded="true" />
+                <element signature="e#5386#5521#0" expanded="true" />
+                <element signature="e#5520#5521#0" expanded="true" />
+                <element signature="e#7846#7854#0" expanded="true" />
+                <element signature="e#11132#11133#0" expanded="true" />
+                <element signature="e#11206#11207#0" expanded="true" />
+                <element signature="e#14905#14906#0" expanded="true" />
+                <element signature="e#14959#14960#0" expanded="true" />
+                <element signature="e#15023#15037#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -49,7 +50,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/GroupMessage.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="165">
+            <state relative-caret-position="147">
               <caret line="11" column="5" selection-start-line="11" selection-start-column="5" selection-end-line="11" selection-end-column="5" />
             </state>
           </provider>
@@ -67,12 +68,12 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/UnderlyingService.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="472">
-              <caret line="44" column="55" selection-start-line="44" selection-start-column="41" selection-end-line="44" selection-end-column="55" />
+            <state relative-caret-position="760">
+              <caret line="177" column="57" lean-forward="true" selection-start-line="177" selection-start-column="57" selection-end-line="177" selection-end-column="57" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#2130#2144#0" expanded="true" />
-                <element signature="e#2251#2267#0" expanded="true" />
+                <element signature="e#2239#2253#0" expanded="true" />
+                <element signature="e#2360#2376#0" expanded="true" />
                 <element signature="e#10808#10809#0" expanded="true" />
                 <element signature="e#10852#10853#0" expanded="true" />
               </folding>
@@ -84,15 +85,11 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>updateConver</find>
-      <find>System</find>
       <find>joinGroup</find>
       <find>checkExistingGroup</find>
       <find>onJoin</find>
-      <find>btnAdd</find>
       <find>.add</find>
       <find>.add(</find>
-      <find>updateConversation</find>
       <find>request_latest_messages</find>
       <find>groupNameIp</find>
       <find>6789</find>
@@ -100,7 +97,6 @@
       <find>btnCreate</find>
       <find>PREFIX_REQUEST_LATEST_MESSAGES</find>
       <find>onREquestLatestMessage</find>
-      <find>btnEdit</find>
       <find>groupSocketsMap</find>
       <find>runGroupThreads</find>
       <find>groupNameIpMap</find>
@@ -112,8 +108,13 @@
       <find>btnProfile</find>
       <find>btnDelete</find>
       <find>windowLIstener</find>
+      <find>updateCo</find>
+      <find>btnEdit</find>
+      <find>updateConversation</find>
+      <find>EventQueue</find>
       <find>onJoinGroup</find>
       <find>btnAddToGroup</find>
+      <find>btnAdd</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -163,7 +164,7 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1581570282226" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1581573190218" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
   </component>
@@ -199,12 +200,12 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1581418751086</updated>
-      <workItem from="1581418754311" duration="49721000" />
+      <workItem from="1581418754311" duration="52566000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="49721000" />
+    <option name="totallyTimeSpent" value="52566000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1551" y="24" width="1783" height="1056" extended-state="0" />
@@ -250,15 +251,21 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/UnderlyingService.java</url>
-          <line>93</line>
+          <line>95</line>
           <properties />
           <option name="timeStamp" value="12" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/Project.java</url>
-          <line>363</line>
+          <line>334</line>
           <properties />
           <option name="timeStamp" value="14" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/Project.java</url>
+          <line>484</line>
+          <properties />
+          <option name="timeStamp" value="17" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -321,19 +328,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/GroupMessage.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="165">
+        <state relative-caret-position="147">
           <caret line="11" column="5" selection-start-line="11" selection-start-column="5" selection-end-line="11" selection-end-column="5" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/UnderlyingService.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="472">
-          <caret line="44" column="55" selection-start-line="44" selection-start-column="41" selection-end-line="44" selection-end-column="55" />
+        <state relative-caret-position="760">
+          <caret line="177" column="57" lean-forward="true" selection-start-line="177" selection-start-column="57" selection-end-line="177" selection-end-column="57" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#2130#2144#0" expanded="true" />
-            <element signature="e#2251#2267#0" expanded="true" />
+            <element signature="e#2239#2253#0" expanded="true" />
+            <element signature="e#2360#2376#0" expanded="true" />
             <element signature="e#10808#10809#0" expanded="true" />
             <element signature="e#10852#10853#0" expanded="true" />
           </folding>
@@ -342,18 +349,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Project.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="259">
-          <caret line="283" column="81" selection-start-line="283" selection-start-column="81" selection-end-line="283" selection-end-column="81" />
+        <state relative-caret-position="-3070">
+          <caret line="216" column="33" lean-forward="true" selection-start-line="216" selection-start-column="33" selection-end-line="216" selection-end-column="33" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#1634#1650#0" expanded="true" />
-            <element signature="e#5278#5413#0" expanded="true" />
-            <element signature="e#5412#5413#0" expanded="true" />
-            <element signature="e#7894#7902#0" expanded="true" />
-            <element signature="e#12568#12569#0" expanded="true" />
-            <element signature="e#12607#12608#0" expanded="true" />
-            <element signature="e#14195#14196#0" expanded="true" />
-            <element signature="e#14249#14250#0" expanded="true" />
+            <element signature="e#1691#1707#0" expanded="true" />
+            <element signature="e#5386#5521#0" expanded="true" />
+            <element signature="e#5520#5521#0" expanded="true" />
+            <element signature="e#7846#7854#0" expanded="true" />
+            <element signature="e#11132#11133#0" expanded="true" />
+            <element signature="e#11206#11207#0" expanded="true" />
+            <element signature="e#14905#14906#0" expanded="true" />
+            <element signature="e#14959#14960#0" expanded="true" />
+            <element signature="e#15023#15037#0" expanded="true" />
           </folding>
         </state>
       </provider>

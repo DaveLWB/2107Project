@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.security.acl.Group;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -225,6 +226,7 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 							System.out.println(userName);
 							btnCreateGroup.setEnabled(true);
 							btnProfile.setEnabled(true);
+							btnRegisterUser.setEnabled(false);
 						}
 					});
 				}
@@ -273,7 +275,7 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 
-				if (selectedUser.contains(userName) ) {
+				if (userName.equals(selectedUser)) {
 					JOptionPane.showMessageDialog(new JFrame(), "You are already in the group", "Error", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
@@ -392,7 +394,7 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 
-				String inputText = tfConversationInput.getText();
+				String inputText = tfConversationInput.getText().trim();
 
 				if (inputText != null) {
 
@@ -461,10 +463,6 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 
 
 
-	public void clearChat(){
-		conversationTextArea.setText("");
-	}
-	
 	private void updateOnlineList() {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -478,12 +476,15 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 
 
 	public void updateConversation(List<GroupMessage> groupMessages) {
-		conversationTextArea.setText("");
+		final StringBuilder conversationsText = new StringBuilder();
+
 		for (GroupMessage message : groupMessages){
 			DateFormat dateFormat = new SimpleDateFormat("dd-mm-yyyy hh:mm:ss");
 			String strDate = dateFormat.format(message.timestamp);
-			conversationTextArea.append(message.message + "@" + strDate + "\n");
+			conversationsText.append(message.message + "@" + strDate + "\n");
 		}
+
+		EventQueue.invokeLater(() -> conversationTextArea.setText(conversationsText.toString()));
 	}
 
 
@@ -509,7 +510,7 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 	@Override
 	public void onJoinGroup(String groupName, String ip) {
 		System.out.println("On Join Group" + groupName + ip);
-
+			btnAddToGroup.setEnabled(true);
 			selectedGroupIP.put(groupName, ip);
 			EventQueue.invokeLater(() -> selectedGroups.addElement(groupName));
 			mainBroadcastService.groupNameIpMap.put(groupName,ip);
@@ -543,18 +544,25 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 					return (int)(o1.timestamp - o2.timestamp);
 				}
 			});
-			List<GroupMessage> filteredMessage = allMessages.stream().distinct().collect(Collectors.toList());
 
-			if (groupMessagesMap.get(groupName) != null) {
-				groupMessagesMap.remove(groupName);
+
+			List<GroupMessage> filteredMessage = new ArrayList<GroupMessage>();
+
+
+			for (GroupMessage msg : allMessages) {
+
+				if (filteredMessage.isEmpty() || !filteredMessage.get(filteredMessage.size() -1 ).message.equals(msg.message)){
+					filteredMessage.add(msg);
+				}
+
 			}
 
 			for (GroupMessage msg : filteredMessage) {
 				System.out.println(msg.message + "\n");
 			}
 
-
-			groupMessagesMap.put(groupName, allMessages);
+			groupMessagesMap.put(groupName, filteredMessage);
+			updateConversation(filteredMessage);
 	}
 	
 	@Override
