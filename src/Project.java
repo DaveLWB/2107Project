@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.security.acl.Group;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -37,7 +38,7 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 	private JButton btnDelete;
 	private JButton btnAddToGroup;
 	private JButton btnSendMessage;
-
+	private HashMap<String, GroupMessageThread> groupThreadsMap = new HashMap<>();
 
 
 	public UnderlyingService mainBroadcastService;
@@ -46,9 +47,8 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 	public Integer activeGroupIndex;
 	public DefaultListModel<String> onlineUsers = new DefaultListModel<>();
 	public DefaultListModel<String> selectedGroups = new DefaultListModel<>();
-	public  final HashMap<String, String> selectedGroupIP = new HashMap<String, String>();
+	public final HashMap<String, String> selectedGroupIP = new HashMap<String, String>();
 	public final HashMap<String, List<GroupMessage>> groupMessagesMap = new HashMap<>();
-	public final HashMap<String, MulticastSocket> groupSocketsMap = new HashMap<>();
 	private String selectedUser = null;
 
 
@@ -241,6 +241,7 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 							System.out.println(userName);
 							btnCreateGroup.setEnabled(true);
 							btnProfile.setEnabled(true);
+							btnRegisterUser.setEnabled(false);
 						}
 					});
 				}
@@ -289,7 +290,7 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 
-				if (selectedUser.contains(userName) ) {
+				if (userName.equals(selectedUser)) {
 					JOptionPane.showMessageDialog(new JFrame(), "You are already in the group", "Error", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
@@ -338,7 +339,10 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 					tfGroupName.setText(selectedGroupName);
 
 					List<GroupMessage> gmList = groupMessagesMap.get(selectedGroupName);
-
+					if (gmList == null) {
+						gmList = new ArrayList<>();
+						groupMessagesMap.put(selectedGroupName, gmList);
+					}
 					for (GroupMessage msg: gmList){
 						System.out.println(msg.message);
 					}
@@ -366,8 +370,8 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 					String selectedGroupName = selectedGroups.get(selectedGroupIndex);
 					selectedGroups.remove(selectedGroupIndex);
 					selectedGroupIP.remove(selectedGroupName);
-					MulticastSocket removedSocket = groupSocketsMap.remove(selectedGroupName);
-					removedSocket.close();
+					GroupMessageThread t = groupThreadsMap.remove(selectedGroupName);
+					t.dispose();
 					mainBroadcastService.groupNameIpMap.remove(selectedGroupName);
 				}
 
@@ -378,15 +382,22 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 		btnEdit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-
-
 				String editName = tfGroupName.getText();
-
-				if (editName != null) {
-
+				if (editName.equals(activeGroup)) {
+					return;
 				}
+				
+				mainBroadcastService.checkExistingGroup(editName, new UnderlyingReplyListener() {
+					@Override
+					public void onReply(List<String> args) {
+						JOptionPane.showMessageDialog(new JFrame(), "Group Exist, please choose another group name", "Error", JOptionPane.ERROR_MESSAGE);
+					}
 
-
+					@Override
+					public void onTimeout() {
+						mainBroadcastService.changeGroupName(activeGroup, editName);
+					}
+				});
 			}
 		});
 
@@ -398,11 +409,11 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 
-				String inputText = tfConversationInput.getText();
+				String inputText = tfConversationInput.getText().trim();
 
 				if (inputText != null) {
 
-					MulticastSocket messagingGroupSocket = groupSocketsMap.get(activeGroup);
+					MulticastSocket messagingGroupSocket = groupThreadsMap.get(activeGroup).groupSocket;
 					inputText = userName + " : " + inputText;
 					byte[] buf = inputText.getBytes();
 
@@ -430,68 +441,43 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 	}
 
 	private void runGroupThreads(String groupName, String ip){
-
-
 		if(selectedGroups.size() > 0){
 			btnAddToGroup.setEnabled(true);
 		}
 
 		InetAddress groupAddress;
-		MulticastSocket groupSocket;
+		MulticastSocket groupSocket = null;
 		try {
 			groupAddress = InetAddress.getByName(ip);
 			groupSocket = new MulticastSocket(PORT);
 			groupSocket.joinGroup(groupAddress);
-			groupSocketsMap.put(groupName, groupSocket);
 		} catch (IOException e) {
 			System.out.println("Could not create multicast socket" + e.getMessage());
 			e.printStackTrace();
 		}
-
-		new Thread(new Runnable() {
+		
+		GroupMessageThread t = new GroupMessageThread(groupName, groupSocket, new GroupMessageListener() {
+			
 			@Override
-			public void run() {
+			public void onGroupMessage(GroupMessage gm) {
+				List<GroupMessage> groupMessagesList = groupMessagesMap.get(groupName);
+				if (groupMessagesList == null) {
+					groupMessagesList = new ArrayList<>();
+					groupMessagesMap.put(groupName, groupMessagesList);
+				}
+				groupMessagesList.add(gm);
 
-				MulticastSocket groupSocket = groupSocketsMap.get(groupName);
-
-				byte buf[] = new byte[1024];
-				DatagramPacket dgpReceived = new DatagramPacket(buf, buf.length);
-				while (true) {
-					try {
-						groupSocket.receive(dgpReceived);
-						byte[] data = dgpReceived.getData();
-						String message = new String(data, 0, data.length);
-						GroupMessage gm = new GroupMessage(new java.util.Date().getTime(), Utility.trimZeros(message), groupName);
-
-
-						List<GroupMessage> groupMessagesList = groupMessagesMap.get(groupName);
-						if (groupMessagesList == null) {
-							groupMessagesList = new ArrayList<>();
-							groupMessagesMap.put(groupName, groupMessagesList);
-						}
-						groupMessagesList.add(gm);
-
-						if (groupName == activeGroup) {
-							updateConversation(groupMessagesList);
-						}
-
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+				if (gm.groupName == activeGroup) {
+					updateConversation(groupMessagesList);
 				}
 			}
-
-		}).start();
-
-
+		});
+		t.start();
+		groupThreadsMap.put(groupName, t);
 	}
 
 
 
-	public void clearChat(){
-		conversationTextArea.setText("");
-	}
-	
 	private void updateOnlineList() {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -505,12 +491,15 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 
 
 	public void updateConversation(List<GroupMessage> groupMessages) {
-		conversationTextArea.setText("");
+		final StringBuilder conversationsText = new StringBuilder();
+
 		for (GroupMessage message : groupMessages){
 			DateFormat dateFormat = new SimpleDateFormat("dd-mm-yyyy hh:mm:ss");
 			String strDate = dateFormat.format(message.timestamp);
-			conversationTextArea.append(message.message + "@" + strDate + "\n");
+			conversationsText.append(message.message + "@" + strDate + "\n");
 		}
+
+		EventQueue.invokeLater(() -> conversationTextArea.setText(conversationsText.toString()));
 	}
 
 
@@ -536,7 +525,7 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 	@Override
 	public void onJoinGroup(String groupName, String ip) {
 		System.out.println("On Join Group" + groupName + ip);
-
+			btnAddToGroup.setEnabled(true);
 			selectedGroupIP.put(groupName, ip);
 			EventQueue.invokeLater(() -> selectedGroups.addElement(groupName));
 			mainBroadcastService.groupNameIpMap.put(groupName,ip);
@@ -570,19 +559,48 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 					return (int)(o1.timestamp - o2.timestamp);
 				}
 			});
-			List<GroupMessage> filteredMessage = allMessages.stream().distinct().collect(Collectors.toList());
 
-			if (groupMessagesMap.get(groupName) != null) {
-				groupMessagesMap.remove(groupName);
+
+			List<GroupMessage> filteredMessage = new ArrayList<GroupMessage>();
+
+
+			for (GroupMessage msg : allMessages) {
+
+				if (filteredMessage.isEmpty() || !filteredMessage.get(filteredMessage.size() -1 ).message.equals(msg.message)){
+					filteredMessage.add(msg);
+				}
+
 			}
 
 			for (GroupMessage msg : filteredMessage) {
 				System.out.println(msg.message + "\n");
 			}
 
-
-			groupMessagesMap.put(groupName, allMessages);
+			groupMessagesMap.put(groupName, filteredMessage);
+			updateConversation(filteredMessage);
 	}
+	
+	@Override
+	public void onGroupNameChange(String oldName, String newName, String ip) {
+		EventQueue.invokeLater(() -> {
+			int oldIndex = selectedGroups.indexOf(oldName);
+			selectedGroups.set(oldIndex, newName);
+			if (oldName.equals(activeGroup)) {
+				groupsList.setSelectedIndex(oldIndex);
+				activeGroup = newName;
+				tfGroupName.setText(newName);
+			}
+		});
+		groupMessagesMap.put(newName, groupMessagesMap.remove(oldName));
+		
+		groupThreadsMap.get(oldName).groupName = newName;
+		groupThreadsMap.put(newName, groupThreadsMap.remove(oldName));
+		
+		selectedGroupIP.remove(oldName);
+		selectedGroupIP.put(newName, ip);
+	}
+
+
 
 	private String generateIP(){
 		Random r  = new Random();
