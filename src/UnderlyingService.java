@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -31,6 +32,7 @@ public class UnderlyingService {
 	private static final String PREFIX_REQUEST_LATEST_MESSAGES = "___request_latest_messages";
 	private static final String REPLY_PREFIX_REQUEST_LATEST_MESSAGES = PREFIX_REQUEST_LATEST_MESSAGES + REPLY_SUFFIX;
 	private static final String PREFIX_USER_LEFT = "___user_left";
+	private static final String PREFIX_CHANGE_GROUP_NAME = "___change_grouop_name";
 
 	private MulticastSocket underlyingSocket;
 	private Map<String, UnderlyingReplyListener> listenerMap = new HashMap<>();
@@ -122,6 +124,20 @@ public class UnderlyingService {
 			sendMessage(createMessage(PREFIX_USER_LEFT, currentUsername));
 		} catch (IOException e) {
 			System.out.println("Failed to send " + PREFIX_USER_LEFT);
+			e.printStackTrace();
+		}
+	}
+	
+	public void changeGroupName(String oldGroupName, String newGroupName) {
+		String oldGroupIp = groupNameIpMap.get(oldGroupName);
+		if (oldGroupIp == null) {
+			throw new IllegalArgumentException("Invalid group name that is not in map");
+		}
+		
+		try {
+			sendMessage(createMessage(PREFIX_CHANGE_GROUP_NAME, oldGroupIp, newGroupName));
+		} catch (IOException e) {
+			System.out.println("Failed to send " + PREFIX_CHANGE_GROUP_NAME);
 			e.printStackTrace();
 		}
 	}
@@ -235,6 +251,26 @@ public class UnderlyingService {
 							
 							if (activityListener != null) {
 								activityListener.onUserOffline(username);
+							}
+						} else if (prefix.startsWith(PREFIX_CHANGE_GROUP_NAME)) {
+							String oldIp = args.get(0);
+							String newName = args.get(1);
+							
+							String oldName = null;
+							for (Entry<String, String> pair: groupNameIpMap.entrySet()) {
+								if (pair.getValue().equals(oldIp)) {
+									oldName = pair.getKey();
+									break;
+								}
+							}
+							
+							if (oldName != null) {
+								groupNameIpMap.put(newName, oldIp);
+								groupNameIpMap.remove(oldName);
+								
+								if (activityListener != null) {
+									activityListener.onGroupNameChange(oldName, newName, oldIp);
+								}
 							}
 						}
 					} catch (IOException e) {
