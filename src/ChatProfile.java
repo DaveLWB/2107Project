@@ -93,14 +93,12 @@ public class ChatProfile extends JFrame {
 		contentPane.add(backBtn);
 		contentPane.add(showNameLabel);
 		
-		JLabel nameLabel_1 = new JLabel("Full Name: ");
+		JLabel nameLabel_1 = new JLabel("Full Name: " + username);
 		nameLabel_1.setForeground(Color.WHITE);
 		nameLabel_1.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		nameLabel_1.setBounds(53, 387, 74, 19);
+		nameLabel_1.setBounds(53, 387, 174, 19);
 		contentPane.add(nameLabel_1);
 
-		// update the no. of group and user name fields
-		showNameLabel.setText(username);
 		noOfGroupLabel.setText("Number of group(s): " + groupSize);
 	}
 
