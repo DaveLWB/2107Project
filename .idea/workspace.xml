@@ -4,7 +4,6 @@
     <list default="true" id="284a3e88-c58a-4884-a770-bb3b2473bc9b" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Project.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Project.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/UnderlyingService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/UnderlyingService.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -21,18 +20,18 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Project.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="272">
-              <caret line="25" column="41" selection-start-line="25" selection-start-column="41" selection-end-line="25" selection-end-column="41" />
+            <state relative-caret-position="259">
+              <caret line="283" column="81" selection-start-line="283" selection-start-column="81" selection-end-line="283" selection-end-column="81" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#1634#1650#0" expanded="true" />
-                <element signature="e#5320#5455#0" expanded="true" />
-                <element signature="e#5454#5455#0" expanded="true" />
+                <element signature="e#5278#5413#0" expanded="true" />
+                <element signature="e#5412#5413#0" expanded="true" />
                 <element signature="e#7894#7902#0" expanded="true" />
-                <element signature="e#12569#12570#0" expanded="true" />
-                <element signature="e#12608#12609#0" expanded="true" />
-                <element signature="e#14403#14404#0" expanded="true" />
-                <element signature="e#14457#14458#0" expanded="true" />
+                <element signature="e#12568#12569#0" expanded="true" />
+                <element signature="e#12607#12608#0" expanded="true" />
+                <element signature="e#14195#14196#0" expanded="true" />
+                <element signature="e#14249#14250#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -51,7 +50,7 @@
         <entry file="file://$PROJECT_DIR$/src/GroupMessage.java">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="165">
-              <caret line="11" column="5" lean-forward="true" selection-start-line="11" selection-start-column="5" selection-end-line="11" selection-end-column="5" />
+              <caret line="11" column="5" selection-start-line="11" selection-start-column="5" selection-end-line="11" selection-end-column="5" />
             </state>
           </provider>
         </entry>
@@ -68,8 +67,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/UnderlyingService.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="675">
-              <caret line="45" lean-forward="true" selection-start-line="45" selection-end-line="45" />
+            <state relative-caret-position="472">
+              <caret line="44" column="55" selection-start-line="44" selection-start-column="41" selection-end-line="44" selection-end-column="55" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#2130#2144#0" expanded="true" />
@@ -85,9 +84,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>List</find>
-      <find>PREFIX_REQUEST_LATEST</find>
-      <find>new Arr</find>
       <find>updateConver</find>
       <find>System</find>
       <find>joinGroup</find>
@@ -113,8 +109,11 @@
       <find>UnderlyingData</find>
       <find>createGroup</find>
       <find>groupMembers</find>
-      <find>onJoinGroup</find>
       <find>btnProfile</find>
+      <find>btnDelete</find>
+      <find>windowLIstener</find>
+      <find>onJoinGroup</find>
+      <find>btnAddToGroup</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -130,11 +129,11 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="3" />
+  <component name="ProjectFrameBounds">
+    <option name="x" value="1551" />
     <option name="y" value="24" />
-    <option name="width" value="1440" />
-    <option name="height" value="877" />
+    <option name="width" value="1783" />
+    <option name="height" value="1056" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -164,7 +163,7 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1581566449858" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1581570282226" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
   </component>
@@ -200,34 +199,34 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1581418751086</updated>
-      <workItem from="1581418754311" duration="46017000" />
+      <workItem from="1581418754311" duration="49721000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="46017000" />
+    <option name="totallyTimeSpent" value="49721000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="3" y="24" width="1440" height="877" extended-state="6" />
+    <frame x="1551" y="24" width="1783" height="1056" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Designer" />
       <window_info id="Image Layers" />
       <window_info id="Capture Tool" />
       <window_info id="UI Designer" />
-      <window_info id="Favorites" sideWeight="0.5010707" side_tool="true" visible="true" weight="0.24964234" />
+      <window_info id="Favorites" sideWeight="0.501548" side_tool="true" visible="true" weight="0.20045951" />
       <window_info id="Learn" />
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49892932" visible="true" weight="0.24964234" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.498452" visible="true" weight="0.20045951" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" />
       <window_info anchor="bottom" id="Docker" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" side_tool="true" />
       <window_info anchor="bottom" id="Database Changes" />
       <window_info anchor="bottom" id="Version Control" />
-      <window_info anchor="bottom" id="Messages" weight="0.32953367" />
+      <window_info anchor="bottom" id="Messages" weight="0.32883817" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32987553" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.40509555" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.32987553" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39937758" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -257,7 +256,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/Project.java</url>
-          <line>316</line>
+          <line>363</line>
           <properties />
           <option name="timeStamp" value="14" />
         </line-breakpoint>
@@ -323,14 +322,14 @@
     <entry file="file://$PROJECT_DIR$/src/GroupMessage.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="165">
-          <caret line="11" column="5" lean-forward="true" selection-start-line="11" selection-start-column="5" selection-end-line="11" selection-end-column="5" />
+          <caret line="11" column="5" selection-start-line="11" selection-start-column="5" selection-end-line="11" selection-end-column="5" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/UnderlyingService.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="675">
-          <caret line="45" lean-forward="true" selection-start-line="45" selection-end-line="45" />
+        <state relative-caret-position="472">
+          <caret line="44" column="55" selection-start-line="44" selection-start-column="41" selection-end-line="44" selection-end-column="55" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#2130#2144#0" expanded="true" />
@@ -343,18 +342,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Project.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
-          <caret line="25" column="41" selection-start-line="25" selection-start-column="41" selection-end-line="25" selection-end-column="41" />
+        <state relative-caret-position="259">
+          <caret line="283" column="81" selection-start-line="283" selection-start-column="81" selection-end-line="283" selection-end-column="81" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#1634#1650#0" expanded="true" />
-            <element signature="e#5320#5455#0" expanded="true" />
-            <element signature="e#5454#5455#0" expanded="true" />
+            <element signature="e#5278#5413#0" expanded="true" />
+            <element signature="e#5412#5413#0" expanded="true" />
             <element signature="e#7894#7902#0" expanded="true" />
-            <element signature="e#12569#12570#0" expanded="true" />
-            <element signature="e#12608#12609#0" expanded="true" />
-            <element signature="e#14403#14404#0" expanded="true" />
-            <element signature="e#14457#14458#0" expanded="true" />
+            <element signature="e#12568#12569#0" expanded="true" />
+            <element signature="e#12607#12608#0" expanded="true" />
+            <element signature="e#14195#14196#0" expanded="true" />
+            <element signature="e#14249#14250#0" expanded="true" />
           </folding>
         </state>
       </provider>

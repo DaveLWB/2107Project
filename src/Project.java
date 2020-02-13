@@ -11,6 +11,7 @@ import java.net.MulticastSocket;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -40,7 +41,7 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 
 
 	public UnderlyingService mainBroadcastService;
-	public String userName;
+	public String userName = null;
 	public String activeGroup = null;
 	public Integer activeGroupIndex;
 	public DefaultListModel<String> onlineUsers = new DefaultListModel<>();
@@ -48,6 +49,7 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 	public  final HashMap<String, String> selectedGroupIP = new HashMap<String, String>();
 	public final HashMap<String, List<GroupMessage>> groupMessagesMap = new HashMap<>();
 	public final HashMap<String, MulticastSocket> groupSocketsMap = new HashMap<>();
+	private String selectedUser = null;
 
 
 	/**
@@ -272,14 +274,36 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 
-				String selectedMember = onlineUserList.getSelectedValue();
-				String selectedGroup = groupsList.getSelectedValue();
-
-				if (selectedMember != null && selectedGroup != null) {
-					mainBroadcastService.addUserToGroup(selectedMember, selectedGroup);
+				if (selectedUser.contains(userName) ) {
+					JOptionPane.showMessageDialog(new JFrame(), "You are already in the group", "Error", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				if (selectedUser == null && activeGroup == null) {
+					JOptionPane.showMessageDialog(new JFrame(), "No Selection made", "Error", JOptionPane.ERROR_MESSAGE);
+				}else {
+					mainBroadcastService.addUserToGroup(selectedUser, activeGroup);
 				}
 			}
 		});
+
+
+
+		ListSelectionListener onlineUserSelectionListener = new ListSelectionListener() {
+			@Override
+			public void valueChanged(ListSelectionEvent e) {
+
+				boolean adjust = e.getValueIsAdjusting();
+
+				if (!adjust) {
+					JList<String> list = (JList<String>) e.getSource();
+					selectedUser = list.getSelectedValue();
+				}
+
+			}
+		};
+		onlineUserList.addListSelectionListener(onlineUserSelectionListener);
+
+
 
 
 		ListSelectionListener groupSelectionListener = new ListSelectionListener() {
@@ -300,6 +324,10 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 
 					List<GroupMessage> gmList = groupMessagesMap.get(selectedGroupName);
 
+					for (GroupMessage msg: gmList){
+						System.out.println(msg.message);
+					}
+
 					if (gmList != null) {
 						updateConversation(gmList);
 					}
@@ -311,6 +339,25 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 			}
 		};
 		groupsList.addListSelectionListener(groupSelectionListener);
+
+
+		btnDelete.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+
+				Integer selectedGroupIndex = groupsList.getSelectedIndex();
+				if (selectedGroupIndex != null) {
+
+					String selectedGroupName = selectedGroups.get(selectedGroupIndex);
+					selectedGroups.remove(selectedGroupIndex);
+					selectedGroupIP.remove(selectedGroupName);
+					MulticastSocket removedSocket = groupSocketsMap.remove(selectedGroupName);
+					removedSocket.close();
+					mainBroadcastService.groupNameIpMap.remove(selectedGroupName);
+				}
+
+			}
+		});
 
 
 		btnEdit.addActionListener(new ActionListener() {
@@ -440,14 +487,6 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 	}
 
 
-	// set Chat button to be true
-	public void enableChatButton(){
-
-	}
-
-	public void disableChat(){
-
-	}
 
 
 	public void updateConversation(List<GroupMessage> groupMessages) {
@@ -509,29 +548,23 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 	public void onRequestLatestMessageResult(String groupName, List<GroupMessage> allMessages) {
 
 
-			for (GroupMessage msg : allMessages) {
-				System.out.println(msg.message + "\n");
-			}
+
 			Collections.sort(allMessages, new Comparator<GroupMessage>() {
 				@Override
 				public int compare(GroupMessage o1, GroupMessage o2) {
 					return (int)(o1.timestamp - o2.timestamp);
 				}
 			});
-			List<GroupMessage> filteredMessage = new ArrayList<>();
-
-			String message = null;
-
-			for (GroupMessage msg : allMessages){
-				if (msg.message != message){
-					filteredMessage.add(msg);
-					message = msg.message;
-				}
-			}
+			List<GroupMessage> filteredMessage = allMessages.stream().distinct().collect(Collectors.toList());
 
 			if (groupMessagesMap.get(groupName) != null) {
 				groupMessagesMap.remove(groupName);
 			}
+
+			for (GroupMessage msg : filteredMessage) {
+				System.out.println(msg.message + "\n");
+			}
+
 
 			groupMessagesMap.put(groupName, allMessages);
 	}
