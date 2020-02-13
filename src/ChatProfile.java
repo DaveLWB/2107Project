@@ -30,7 +30,6 @@ public class ChatProfile extends JFrame {
 	 * Create the frame.
 	 */
 	public ChatProfile(String username, int groupSize) {
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 760, 574);
 		setMinimumSize(new Dimension(760, 470));
 		setResizable(false);

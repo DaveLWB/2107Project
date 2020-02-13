@@ -258,11 +258,13 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 				if (groupName.isEmpty()){
 					JOptionPane.showMessageDialog(new JFrame(), "Please enter group name", "Error", JOptionPane.ERROR_MESSAGE);
 				}else {
+					btnCreateGroup.setEnabled(false);
 
 					mainBroadcastService.checkExistingGroup(groupName, new UnderlyingReplyListener() {
 						@Override
 						public void onReply(List<String> args) {
 							JOptionPane.showMessageDialog(new JFrame(), "Group Exist, please join another group", "Error", JOptionPane.ERROR_MESSAGE);
+							btnCreateGroup.setEnabled(true);
 						}
 
 						@Override
@@ -276,6 +278,7 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 							activeGroup = groupName;
 							activeGroupIndex = selectedGroups.size();
 							runGroupThreads(groupName, ip);
+							btnCreateGroup.setEnabled(true);
 						}
 					});
 
@@ -524,15 +527,18 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 	@Override
 	public void onJoinGroup(String groupName, String ip) {
 		System.out.println("On Join Group" + groupName + ip);
-			btnAddToGroup.setEnabled(true);
-			selectedGroupIP.put(groupName, ip);
-			EventQueue.invokeLater(() -> selectedGroups.addElement(groupName));
-			mainBroadcastService.groupNameIpMap.put(groupName,ip);
+		if (selectedGroupIP.containsKey(groupName)) {
+			return;
+		}
+		
+		btnAddToGroup.setEnabled(true);
+		selectedGroupIP.put(groupName, ip);
+		EventQueue.invokeLater(() -> selectedGroups.addElement(groupName));
+		mainBroadcastService.groupNameIpMap.put(groupName,ip);
 
 
-			runGroupThreads(groupName, ip);
-			mainBroadcastService.requestLatestMessages(groupName);
-
+		runGroupThreads(groupName, ip);
+		mainBroadcastService.requestLatestMessages(groupName);
 	}
 
 	@Override
