@@ -89,7 +89,7 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 	 */
 	public Project() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 694, 503);
+		setBounds(100, 100, 719, 524);
 		contentPane = new JPanel();
 		contentPane.setBackground(Color.DARK_GRAY);
 		contentPane.setForeground(Color.BLACK);
@@ -112,7 +112,7 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 		contentPane.add(lblGroupManagement);
 		
 		JButton btnCreateGroup = new JButton("Create");
-		btnCreateGroup.setBounds(10, 101, 89, 23);
+		btnCreateGroup.setBounds(288, 69, 89, 23);
 		contentPane.add(btnCreateGroup);
 		btnCreateGroup.setEnabled(false);
 
@@ -127,45 +127,60 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 		btnDelete.setEnabled(false);
 
 		btnAddToGroup = new JButton("Add to Group");
-		btnAddToGroup.setBounds(10, 135, 89, 23);
+		btnAddToGroup.setBounds(10, 101, 89, 23);
 		contentPane.add(btnAddToGroup);
 		btnAddToGroup.setEnabled(false);
 		
 		JLabel lblOnlineUser = new JLabel("Online Users");
 		lblOnlineUser.setForeground(Color.WHITE);
-		lblOnlineUser.setBounds(10, 160, 98, 14);
+		lblOnlineUser.setBounds(10, 147, 98, 14);
 		contentPane.add(lblOnlineUser);
 		
 		conversationTextArea = new JTextArea();
-		conversationTextArea.setBounds(288, 180, 383, 258);
+		//conversationTextArea.setBounds(288, 180, 383, 258);
 		contentPane.add(conversationTextArea);
+		JScrollPane scr = new JScrollPane(conversationTextArea,
+                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		scr.setBounds(288, 172, 383, 258);
+		contentPane.add(scr);
 		
 		JLabel lblNewLabel = new JLabel("Groups");
 		lblNewLabel.setForeground(Color.WHITE);
-		lblNewLabel.setBounds(145, 160, 133, 14);
+		lblNewLabel.setBounds(145, 147, 133, 14);
 		contentPane.add(lblNewLabel);
 		
 		groupsList = new JList<>(selectedGroups);
-		groupsList.setBounds(145, 180, 133, 258);
+		groupsList.setBounds(145, 172, 133, 258);
 		contentPane.add(groupsList);
+		JScrollPane scr2 = new JScrollPane(groupsList,
+                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		scr2.setBounds(145, 172, 133, 258);
+		contentPane.add(scr2);
 			
 		JLabel lblConversation = new JLabel("Conversation");
 		lblConversation.setForeground(Color.WHITE);
-		lblConversation.setBounds(288, 160, 243, 14);
+		lblConversation.setBounds(288, 147, 243, 14);
 		contentPane.add(lblConversation);
 		
 		onlineUserList = new JList<>(onlineUsers);
-		onlineUserList.setBounds(10, 180, 125, 258);
+		onlineUserList.setBounds(10, 172, 125, 258);
 		contentPane.add(onlineUserList);
+		JScrollPane scr1 = new JScrollPane(onlineUserList,
+                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		scr1.setBounds(10, 172, 125, 258);
+		contentPane.add(scr1);
 		
 		btnSendMessage = new JButton("Send Message");
-		btnSendMessage.setBounds(10, 450, 121, 23);
+		btnSendMessage.setBounds(438, 441, 121, 23);
 		contentPane.add(btnSendMessage);
 		btnSendMessage.setEnabled(false);
 		
 		tfConversationInput = new JTextField();
 		tfConversationInput.setColumns(10);
-		tfConversationInput.setBounds(141, 450, 287, 22);
+		tfConversationInput.setBounds(141, 442, 287, 22);
 		contentPane.add(tfConversationInput);
 		
 		tfGroupName = new JTextField();
@@ -196,7 +211,7 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 
 			}
 		});
-		btnProfile.setBounds(367, 11, 89, 23);
+		btnProfile.setBounds(507, 41, 89, 51);
 		btnProfile.setEnabled(false);
 		contentPane.add(btnProfile);
 
