@@ -189,7 +189,7 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 		JButton btnProfile = new JButton("Profile");
 		btnProfile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				chatProfile frame = new chatProfile();
+				ChatProfile frame = new ChatProfile(userName, selectedGroups.size());
 				frame.setLocationRelativeTo(null);
 				frame.setVisible(true);
 				dispose();
