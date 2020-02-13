@@ -43,7 +43,7 @@ public class UnderlyingService {
 
 	public String currentUsername;
 	public final HashMap<String, String> groupNameIpMap = new HashMap<String, String>();
-	
+
 	public UnderlyingService(UnderlyingActivityListener activityListener) throws IOException {
 		this.activityListener = activityListener;
 		address = InetAddress.getByName(UNDERLYING_IP);

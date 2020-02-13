@@ -24,7 +24,6 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 	private static final long serialVersionUID = 5119421811793569103L;
 
 	private static final int PORT = 6789;
-
 	private JPanel contentPane;
 	private JTextField tfName;
 	private JTextField tfConversationInput;
@@ -33,6 +32,11 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 	private JList<String> groupsList;
 	private JTextArea conversationTextArea;
 	private Set<String> onlineUserSet = new HashSet<>();
+	private JButton btnEdit;
+	private JButton btnDelete;
+	private JButton btnAddToGroup;
+	private JButton btnSendMessage;
+
 
 
 	public UnderlyingService mainBroadcastService;
@@ -44,6 +48,7 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 	public  final HashMap<String, String> selectedGroupIP = new HashMap<String, String>();
 	public final HashMap<String, List<GroupMessage>> groupMessagesMap = new HashMap<>();
 	public final HashMap<String, MulticastSocket> groupSocketsMap = new HashMap<>();
+
 
 	/**
 	 * Launch the application.
@@ -77,8 +82,6 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 
 
 
-
-
 	/**
 	 * Create the frame.™
 	 */
@@ -109,23 +112,22 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 		JButton btnCreateGroup = new JButton("Create");
 		btnCreateGroup.setBounds(10, 101, 89, 23);
 		contentPane.add(btnCreateGroup);
+		btnCreateGroup.setEnabled(false);
 
-		JButton btnJoinGroup = new JButton("Join");
-		btnJoinGroup.setBounds(109, 101, 89, 23);
-		contentPane.add(btnJoinGroup);
-
-		JButton btnEdit = new JButton("Edit");
-		btnEdit.setBounds(208, 101, 89, 23);
+		btnEdit = new JButton("Edit");
+		btnEdit.setBounds(109, 101, 89, 23);
 		contentPane.add(btnEdit);
-		
-		JButton btnDelete = new JButton("Delete");
-		btnDelete.setBounds(310, 101, 89, 23);
+		btnEdit.setEnabled(false);
+
+		btnDelete = new JButton("Delete");
+		btnDelete.setBounds(208, 101, 89, 23);
 		contentPane.add(btnDelete);
+		btnDelete.setEnabled(false);
 
-
-		JButton btnAddToGroup = new JButton("Add to Group");
+		btnAddToGroup = new JButton("Add to Group");
 		btnAddToGroup.setBounds(10, 135, 89, 23);
 		contentPane.add(btnAddToGroup);
+		btnAddToGroup.setEnabled(false);
 		
 		JLabel lblOnlineUser = new JLabel("Online Users");
 		lblOnlineUser.setForeground(Color.WHITE);
@@ -154,9 +156,10 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 		onlineUserList.setBounds(10, 180, 125, 258);
 		contentPane.add(onlineUserList);
 		
-		JButton btnSendMessage = new JButton("Send Message");
+		btnSendMessage = new JButton("Send Message");
 		btnSendMessage.setBounds(10, 450, 121, 23);
 		contentPane.add(btnSendMessage);
+		btnSendMessage.setEnabled(false);
 		
 		tfConversationInput = new JTextField();
 		tfConversationInput.setColumns(10);
@@ -172,15 +175,28 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 
 		mainBroadcastService = getInstance();
 
-		
-		addWindowListener(new WindowAdapter() {
 
+		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
 				mainBroadcastService.broadcastExit();
 			}
 			
 		});
+
+		JButton btnProfile = new JButton("Profile");
+		btnProfile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				chatProfile frame = new chatProfile();
+				frame.setLocationRelativeTo(null);
+				frame.setVisible(true);
+				dispose();
+
+			}
+		});
+		btnProfile.setBounds(367, 11, 89, 23);
+		btnProfile.setEnabled(false);
+		contentPane.add(btnProfile);
 
 			//Get all online users
 
@@ -206,6 +222,8 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 							mainBroadcastService.broadcastUsername(userName);
 							mainBroadcastService.currentUsername = userName;
 							System.out.println(userName);
+							btnCreateGroup.setEnabled(true);
+							btnProfile.setEnabled(true);
 						}
 					});
 				}
@@ -236,6 +254,8 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 							mainBroadcastService.groupNameIpMap.put(groupName, ip);
 							selectedGroups.addElement(groupName);
 							selectedGroupIP.put(groupName, ip);
+							ArrayList<String> newGroupMember = new ArrayList<String>();
+							newGroupMember.add(userName);
 							activeGroup = groupName;
 							activeGroupIndex = selectedGroups.size();
 							runGroupThreads(groupName, ip);
@@ -257,10 +277,7 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 
 				if (selectedMember != null && selectedGroup != null) {
 					mainBroadcastService.addUserToGroup(selectedMember, selectedGroup);
-
 				}
-
-
 			}
 		});
 
@@ -272,39 +289,20 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 				boolean adjust = e.getValueIsAdjusting();
 
 				if (!adjust) {
-
 					JList<String> list = (JList<String>) e.getSource();
 					String selectedGroupName = list.getSelectedValue();
 					System.out.println(selectedGroupName);
 					activeGroup = selectedGroupName;
+					btnSendMessage.setEnabled(true);
+					btnEdit.setEnabled(true);
+					btnDelete.setEnabled(true);
+					tfGroupName.setText(selectedGroupName);
 
 					List<GroupMessage> gmList = groupMessagesMap.get(selectedGroupName);
 
 					if (gmList != null) {
-
 						updateConversation(gmList);
 					}
-
-
-
-
-
-
-
-//					mainBroadcastService.requestLatestMessages(userName, activeGroup, new UnderlyingReplyListener() {
-//						@Override
-//						public void onReply(List<String> args) {
-//
-//						}
-//
-//						@Override
-//						public void onTimeout() {
-//
-//
-//
-//						}
-//					});
-
 
 				}
 
@@ -313,6 +311,22 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 			}
 		};
 		groupsList.addListSelectionListener(groupSelectionListener);
+
+
+		btnEdit.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+
+
+				String editName = tfGroupName.getText();
+
+				if (editName != null) {
+
+				}
+
+
+			}
+		});
 
 
 
@@ -334,60 +348,31 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 						System.out.println("no active group");
 						return;
 					}
-
 					String ipAddress = selectedGroupIP.get(activeGroup);
-
 					try {
 
 						InetAddress address = InetAddress.getByName(ipAddress);
-						DatagramPacket dgpConnected = new DatagramPacket(buf, buf.length, address,6789);
+						DatagramPacket dgpConnected = new DatagramPacket(buf, buf.length, address, PORT);
 						messagingGroupSocket.send(dgpConnected);
 //
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}
 
-//
-//					long messageTime = new java.util.Date().getTime();
-//					GroupMessage newMessage = new GroupMessage(messageTime,userName, inputText, activeGroup);
-//					groupMessages.put(activeGroup, newMessage);
-//					mainBroadcastService.
 				}
 
-
-
 			}
 		});
-
-
-		btnDelete.addActionListener(e -> {
-			mainBroadcastService.broadcastExit();
-		});
-
-
-
-		JButton btnProfile = new JButton("Profile");
-		btnProfile.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				chatProfile frame = new chatProfile();
-				frame.setLocationRelativeTo(null);
-				frame.setVisible(true);
-				dispose();			
-				
-			}
-		});
-		btnProfile.setBounds(367, 11, 89, 23);
-		contentPane.add(btnProfile);
-
-
-
-
-
 
 
 	}
 
 	private void runGroupThreads(String groupName, String ip){
+
+
+		if(selectedGroups.size() > 0){
+			btnAddToGroup.setEnabled(true);
+		}
 
 		InetAddress groupAddress;
 		MulticastSocket groupSocket;
@@ -428,20 +413,16 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 							updateConversation(groupMessagesList);
 						}
 
-
-
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
 				}
-
 			}
 
 		}).start();
 
 
 	}
-
 
 
 
@@ -472,7 +453,7 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 	public void updateConversation(List<GroupMessage> groupMessages) {
 		conversationTextArea.setText("");
 		for (GroupMessage message : groupMessages){
-			DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+			DateFormat dateFormat = new SimpleDateFormat("dd-mm-yyyy hh:mm:ss");
 			String strDate = dateFormat.format(message.timestamp);
 			conversationTextArea.append(message.message + "@" + strDate + "\n");
 		}
@@ -501,12 +482,14 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 	@Override
 	public void onJoinGroup(String groupName, String ip) {
 		System.out.println("On Join Group" + groupName + ip);
-		selectedGroupIP.put(groupName, ip);
-		
-		EventQueue.invokeLater(() -> selectedGroups.addElement(groupName));
-		
-		runGroupThreads(groupName, ip);
-		mainBroadcastService.requestLatestMessages(groupName);
+
+			selectedGroupIP.put(groupName, ip);
+			EventQueue.invokeLater(() -> selectedGroups.addElement(groupName));
+			mainBroadcastService.groupNameIpMap.put(groupName,ip);
+
+
+			runGroupThreads(groupName, ip);
+			mainBroadcastService.requestLatestMessages(groupName);
 
 	}
 
@@ -514,7 +497,6 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 	public List<GroupMessage> onRequestLatestMessages(String groupName) {
 
 		List<GroupMessage> latestMessage = groupMessagesMap.get(groupName);
-
 		if (latestMessage == null){
 			latestMessage = new ArrayList<>();
 			return latestMessage;
@@ -530,7 +512,6 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 			for (GroupMessage msg : allMessages) {
 				System.out.println(msg.message + "\n");
 			}
-
 			Collections.sort(allMessages, new Comparator<GroupMessage>() {
 				@Override
 				public int compare(GroupMessage o1, GroupMessage o2) {
