@@ -25,10 +25,9 @@ public class ChatProfile extends JFrame {
 	private JPanel contentPane;
 	private JTextField nameTextField;
 	private JLabel PictureLabel = new JLabel("");
+
 	/**
 	 * Create the frame.
-	 * 
-	 * @param groupSize
 	 */
 	public ChatProfile(String username, int groupSize) {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -45,16 +44,13 @@ public class ChatProfile extends JFrame {
 		backBtn.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		backBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Project frame = new Project();
-				frame.setLocationRelativeTo(null);
-				frame.setVisible(true);
 				dispose();
 			}
 		});
 		PictureLabel.setBounds(0, 74, 376, 285);
 
 		PictureLabel.setIcon(
-				new ImageIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/profilepic.jpg")).getImage()));
+				new ImageIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/profilePix.jpg")).getImage()));
 		PictureLabel.setBorder(new LineBorder(Color.LIGHT_GRAY, 5));
 
 		JLabel showNameLabel = new JLabel("");
@@ -66,7 +62,7 @@ public class ChatProfile extends JFrame {
 		nameLabel.setFont(new Font("Tahoma", Font.PLAIN, 15));
 
 		JLabel noOfGroupLabel = new JLabel("Number Of Groups:");
-		noOfGroupLabel.setBounds(388, 82, 129, 19);
+		noOfGroupLabel.setBounds(388, 82, 261, 19);
 		noOfGroupLabel.setFont(new Font("Tahoma", Font.PLAIN, 15));
 
 		JButton btnUpdate = new JButton("UPDATE");
@@ -114,9 +110,9 @@ public class ChatProfile extends JFrame {
 
 		// update the no. of group and user name fields
 		showNameLabel.setText(username);
-		noOfGroupLabel.setText(String.valueOf(groupSize));
+		noOfGroupLabel.setText("Number of group(s): " + groupSize);
 	}
-	
+
 	private void uploadImage(java.awt.event.ActionEvent evt) {
 		JFileChooser filechooser = new JFileChooser();
 

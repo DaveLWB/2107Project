@@ -207,7 +207,6 @@ public class Project extends JFrame implements UnderlyingActivityListener {
 				ChatProfile frame = new ChatProfile(userName, selectedGroups.size());
 				frame.setLocationRelativeTo(null);
 				frame.setVisible(true);
-				dispose();
 
 			}
 		});
