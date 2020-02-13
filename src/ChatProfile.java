@@ -23,7 +23,6 @@ import javax.swing.ImageIcon;
 public class ChatProfile extends JFrame {
 
 	private JPanel contentPane;
-	private JTextField nameTextField;
 	private JLabel PictureLabel = new JLabel("");
 
 	/**
@@ -35,7 +34,7 @@ public class ChatProfile extends JFrame {
 		setMinimumSize(new Dimension(760, 470));
 		setResizable(false);
 		contentPane = new JPanel();
-		contentPane.setBackground(Color.LIGHT_GRAY);
+		  contentPane.setBackground(Color.DARK_GRAY);
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 
@@ -47,64 +46,51 @@ public class ChatProfile extends JFrame {
 				dispose();
 			}
 		});
-		PictureLabel.setBounds(0, 74, 376, 285);
+		  PictureLabel.setBounds(12, 59, 364, 285);
 
 		PictureLabel.setIcon(
 				new ImageIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/profilePix.jpg")).getImage()));
 		PictureLabel.setBorder(new LineBorder(Color.LIGHT_GRAY, 5));
 
 		JLabel showNameLabel = new JLabel("");
-		showNameLabel.setBounds(158, 387, 76, 19);
-		showNameLabel.setFont(new Font("Tahoma", Font.PLAIN, 15));
+		  showNameLabel.setForeground(Color.WHITE);
+		  showNameLabel.setBounds(158, 387, 134, 19);
+		  showNameLabel.setFont(new Font("Tahoma", Font.PLAIN, 15));
+		  
+		  JLabel nameLabel = new JLabel("Upload Image");
+		  nameLabel.setForeground(Color.WHITE);
+		  nameLabel.setBounds(398, 149, 134, 19);
+		  nameLabel.setFont(new Font("Tahoma", Font.PLAIN, 15));
+		  
+		  JLabel noOfGroupLabel = new JLabel("Number Of Groups:");
+		  noOfGroupLabel.setForeground(Color.WHITE);
+		  noOfGroupLabel.setBounds(388, 82, 321, 19);
+		  noOfGroupLabel.setFont(new Font("Tahoma", Font.PLAIN, 15));
 
-		JLabel nameLabel = new JLabel("Full Name: ");
-		nameLabel.setBounds(388, 126, 74, 19);
-		nameLabel.setFont(new Font("Tahoma", Font.PLAIN, 15));
-
-		JLabel noOfGroupLabel = new JLabel("Number Of Groups:");
-		noOfGroupLabel.setBounds(388, 82, 261, 19);
-		noOfGroupLabel.setFont(new Font("Tahoma", Font.PLAIN, 15));
-
-		JButton btnUpdate = new JButton("UPDATE");
-		btnUpdate.setBounds(534, 182, 115, 27);
-
-		btnUpdate.setFont(new Font("Tahoma", Font.PLAIN, 15));
-
-		nameTextField = new JTextField();
-		nameTextField.setBounds(503, 122, 231, 27);
-		nameTextField.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		nameTextField.setColumns(10);
-
+	
 		// Set Profile Info
 		showNameLabel.setText("");
 
-		JLabel showNumberLabel = new JLabel("");
-		showNumberLabel.setBounds(534, 80, 88, 22);
-		showNumberLabel.setFont(new Font("Tahoma", Font.PLAIN, 15));
+		  JLabel showNumberLabel = new JLabel("");
+		  showNumberLabel.setBounds(534, 80, 88, 22);
+		  showNumberLabel.setFont(new Font("Tahoma", Font.PLAIN, 15));
+		  
+		  JButton btnUpload = new JButton("UPLOAD");
+		  btnUpload.setBounds(388, 182, 115, 27);
+		  btnUpload.setFont(new Font("Tahoma", Font.PLAIN, 15));
+		  btnUpload.addActionListener(new ActionListener() {
+		   public void actionPerformed(ActionEvent e) {
+		    uploadImage(e);
+		   }
+		  });
 
-		JButton btnUpload = new JButton("UPLOAD");
-		btnUpload.setBounds(388, 182, 115, 27);
-		btnUpload.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		btnUpload.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				uploadImage(e);
-			}
-		});
-
-		btnUpdate.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				showNameLabel.setText(nameTextField.getText());
-
-			}
-		});
+		
 		contentPane.setLayout(null);
 		contentPane.add(PictureLabel);
 		contentPane.add(noOfGroupLabel);
 		contentPane.add(showNumberLabel);
 		contentPane.add(nameLabel);
-		contentPane.add(nameTextField);
 		contentPane.add(btnUpload);
-		contentPane.add(btnUpdate);
 		contentPane.add(backBtn);
 		contentPane.add(showNameLabel);
 
