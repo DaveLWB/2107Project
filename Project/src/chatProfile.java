@@ -89,7 +89,7 @@ public class chatProfile extends JFrame {
   nameLabel.setFont(new Font("Tahoma", Font.PLAIN, 15));
   
   JLabel noOfGroupLabel = new JLabel("Number Of Groups:");
-  noOfGroupLabel.setBounds(388, 82, 129, 19);
+  noOfGroupLabel.setBounds(388, 82, 261, 19);
   noOfGroupLabel.setFont(new Font("Tahoma", Font.PLAIN, 15));
   
   JButton btnUpdate = new JButton("UPDATE");
