@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -30,7 +31,9 @@ public class UnderlyingService {
 	private static final String PREFIX_ADD_USER_TO_GROUP = "___add_user_to_group";
 	private static final String PREFIX_REQUEST_LATEST_MESSAGES = "___request_latest_messages";
 	private static final String REPLY_PREFIX_REQUEST_LATEST_MESSAGES = PREFIX_REQUEST_LATEST_MESSAGES + REPLY_SUFFIX;
-	
+	private static final String PREFIX_USER_LEFT = "___user_left";
+	private static final String PREFIX_CHANGE_GROUP_NAME = "___change_grouop_name";
+
 	private MulticastSocket underlyingSocket;
 	private Map<String, UnderlyingReplyListener> listenerMap = new HashMap<>();
 	private Map<String, ScheduledFuture<?>> timeoutMap = new HashMap<>();
@@ -38,10 +41,11 @@ public class UnderlyingService {
 	private UnderlyingActivityListener activityListener;
 	private InetAddress address;
 	private List<GroupMessage> latestMessagesBuffer = new ArrayList<GroupMessage>(100);
-	
+
+
 	public String currentUsername;
 	public final HashMap<String, String> groupNameIpMap = new HashMap<String, String>();
-	
+
 	public UnderlyingService(UnderlyingActivityListener activityListener) throws IOException {
 		this.activityListener = activityListener;
 		address = InetAddress.getByName(UNDERLYING_IP);
@@ -100,15 +104,40 @@ public class UnderlyingService {
 		}
 	}
 	
-	public void requestLatestMessages(String ownUsername, String groupName, UnderlyingReplyListener listener) {
+	public void requestLatestMessages(String groupName) {
 		String replyId = createReplyId();
 		listenerMap.put(replyId, null);
-		startRequestLatestMessageTimeout(replyId);
+		startRequestLatestMessageTimeout(groupName, replyId);
 		try {
-			sendMessage(createMessage(PREFIX_REQUEST_LATEST_MESSAGES, replyId, ownUsername, groupName));
+			sendMessage(createMessage(PREFIX_REQUEST_LATEST_MESSAGES, replyId, groupName));
 		} catch (IOException e) {
 			System.out.println("Failed to send " + PREFIX_REQUEST_LATEST_MESSAGES);
 			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public void broadcastExit() {
+		if (currentUsername == null) return;
+		
+		try {
+			sendMessage(createMessage(PREFIX_USER_LEFT, currentUsername));
+		} catch (IOException e) {
+			System.out.println("Failed to send " + PREFIX_USER_LEFT);
+			e.printStackTrace();
+		}
+	}
+	
+	public void changeGroupName(String oldGroupName, String newGroupName) {
+		String oldGroupIp = groupNameIpMap.get(oldGroupName);
+		if (oldGroupIp == null) {
+			throw new IllegalArgumentException("Invalid group name that is not in map");
+		}
+		
+		try {
+			sendMessage(createMessage(PREFIX_CHANGE_GROUP_NAME, oldGroupIp, newGroupName));
+		} catch (IOException e) {
+			System.out.println("Failed to send " + PREFIX_CHANGE_GROUP_NAME);
 			e.printStackTrace();
 		}
 	}
@@ -119,7 +148,7 @@ public class UnderlyingService {
 			@Override
 			public void run() {
 				byte buf[] = new byte[1024];
-				DatagramPacket dgpReceived = new DatagramPacket(buf, buf.length);
+                DatagramPacket dgpReceived = new DatagramPacket(buf, buf.length);
 				while (true) {
 					try {
 //						System.out.println("Waiting for message");
@@ -131,24 +160,13 @@ public class UnderlyingService {
 					}
 					
 					byte[] data = dgpReceived.getData();
-					String prefix = new String(data, 0, 40);
-//					System.out.println("handlemessage prefix: " + prefix);
-					if (prefix.startsWith(REPLY_PREFIX_REQUEST_LATEST_MESSAGES)) {
-						String replyId = prefix.split(DELIMITER)[1];
-						if (listenerMap.containsKey(replyId)) {
-							ByteBuffer bb = ByteBuffer.wrap(data);
-							bb.position(40);
-							byte[] slice = bb.slice().array();
-							GroupMessage gm = GroupMessage.fromBytes(slice);
-							latestMessagesBuffer.add(gm);
-						}
-						return;
-					}
-					
 					try {
-						String msg = new String(data, 0, data.length);
-						if (msg.startsWith(REPLY_PREFIX_CHECK_EXISTING_USER)) {
-							List<String> args = getArguments(REPLY_PREFIX_CHECK_EXISTING_USER, msg);
+						String prefix = new String(data, 0, PREFIX_SIZE);
+						String msg = new String(data, PREFIX_SIZE, data.length - PREFIX_SIZE);
+						System.out.println("handlemessage prefix: " + prefix + ", msg: " + msg);
+
+						List<String> args = getArguments(msg);
+						if (prefix.startsWith(REPLY_PREFIX_CHECK_EXISTING_USER)) {
 							String replyId = args.get(0);
 							
 							UnderlyingReplyListener listener = listenerMap.remove(replyId);
@@ -156,8 +174,7 @@ public class UnderlyingService {
 								listener.onReply(args);
 								stopTimeout(replyId);
 							}
-						} else if (msg.startsWith(PREFIX_CHECK_EXISTING_USER)) {
-							List<String> args = getArguments(PREFIX_CHECK_EXISTING_USER, msg);
+						} else if (prefix.startsWith(PREFIX_CHECK_EXISTING_USER)) {
 							String replyId = args.get(0);
 							String username = args.get(1);
 //							System.out.println("replyId: " + replyId + ", username: "+ username + ", currentUser: " + currentUsername);
@@ -165,25 +182,25 @@ public class UnderlyingService {
 //								System.out.println("current user is equal");
 								sendMessage(createMessage(REPLY_PREFIX_CHECK_EXISTING_USER, replyId));
 							}
-						} else if (msg.startsWith(REPLY_PREFIX_CHECK_EXISTING_GROUP)) {
-							List<String> args = getArguments(REPLY_PREFIX_CHECK_EXISTING_GROUP, msg);
+						} else if (prefix.startsWith(REPLY_PREFIX_CHECK_EXISTING_GROUP)) {
 							String replyId = args.get(0);
-							
+							String groupName = args.get(1);
+							String ip = args.get(2);
+							groupNameIpMap.put(groupName, ip);
+
 							UnderlyingReplyListener listener = listenerMap.remove(replyId);
 							if (listener != null) {
 								listener.onReply(args);
 								stopTimeout(replyId);
 							}
-						} else if (msg.startsWith(PREFIX_CHECK_EXISTING_GROUP)) {
-							List<String> args = getArguments(PREFIX_CHECK_EXISTING_GROUP, msg);
+						} else if (prefix.startsWith(PREFIX_CHECK_EXISTING_GROUP)) {
 							String replyId = args.get(0);
 							String groupName = args.get(1);
 							String groupIp = groupNameIpMap.get(groupName);
 							if (groupIp != null) {
 								sendMessage(createMessage(REPLY_PREFIX_CHECK_EXISTING_GROUP, replyId, groupName, groupIp));
 							}
-						} else if (msg.startsWith(REPLY_PREFIX_BROADCAST_USERNAME)) {
-							List<String> args = getArguments(REPLY_PREFIX_BROADCAST_USERNAME, msg);
+						} else if (prefix.startsWith(REPLY_PREFIX_BROADCAST_USERNAME)) {
 							String replyId = args.get(0);
 							String username = args.get(1);
 							
@@ -192,8 +209,7 @@ public class UnderlyingService {
 									activityListener.onUserOnline(username);
 								}
 							}
-						} else if (msg.startsWith(PREFIX_BROADCAST_USERNAME)) {
-							List<String> args = getArguments(PREFIX_BROADCAST_USERNAME, msg);
+						} else if (prefix.startsWith(PREFIX_BROADCAST_USERNAME)) {
 							String replyId = args.get(0);
 							String username = args.get(1);
 							
@@ -203,34 +219,57 @@ public class UnderlyingService {
 							if (currentUsername != null) {							
 								sendMessage(createMessage(REPLY_PREFIX_BROADCAST_USERNAME, replyId, currentUsername));
 							}
-						} else if (msg.startsWith(PREFIX_ADD_USER_TO_GROUP)) {
-							List<String> args = getArguments(PREFIX_ADD_USER_TO_GROUP, msg);
+						} else if (prefix.startsWith(PREFIX_ADD_USER_TO_GROUP)) {
 							String username = args.get(0);
 							if (!username.equals(currentUsername)) {
-								return;
+							    continue;
 							}
 							String groupName = args.get(1);
 							String ip = args.get(2);
+							groupNameIpMap.put(groupName, ip);
 							if (activityListener != null) {
 								activityListener.onJoinGroup(groupName, ip);
 							}
-						} else if (msg.startsWith(PREFIX_REQUEST_LATEST_MESSAGES)) {
-							List<String> args = getArguments(PREFIX_ADD_USER_TO_GROUP, msg);
+						} else if (prefix.startsWith(REPLY_PREFIX_REQUEST_LATEST_MESSAGES)) {
 							String replyId = args.get(0);
-							String groupName = args.get(2);
+							String serializedMessage = args.get(1);
+							if (listenerMap.containsKey(replyId)) {
+								latestMessagesBuffer.add(new GroupMessage(serializedMessage));
+							}
+						} else if (prefix.startsWith(PREFIX_REQUEST_LATEST_MESSAGES)) {
+							String replyId = args.get(0);
+							String groupName = args.get(1);
 							
 							if (activityListener != null) {
 								List<GroupMessage> messages = activityListener.onRequestLatestMessages(groupName);
-								ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
 								for (GroupMessage message : messages) {
-									byteBuffer.put(prefix.getBytes());
-									byteBuffer.put(DELIMITER.getBytes());
-									byteBuffer.put(replyId.getBytes());
-									byteBuffer.position(PREFIX_SIZE);
-									byteBuffer.put(message.getBytes());
-									
-									DatagramPacket packet = new DatagramPacket(byteBuffer.array(), byteBuffer.position(), address, PORT);
-									underlyingSocket.send(packet);
+									sendMessage(createMessage(REPLY_PREFIX_REQUEST_LATEST_MESSAGES, replyId, message.serialize()));
+								}
+							}
+						} else if (prefix.startsWith(PREFIX_USER_LEFT)) {
+							String username = args.get(0);
+							
+							if (activityListener != null) {
+								activityListener.onUserOffline(username);
+							}
+						} else if (prefix.startsWith(PREFIX_CHANGE_GROUP_NAME)) {
+							String oldIp = args.get(0);
+							String newName = args.get(1);
+							
+							String oldName = null;
+							for (Entry<String, String> pair: groupNameIpMap.entrySet()) {
+								if (pair.getValue().equals(oldIp)) {
+									oldName = pair.getKey();
+									break;
+								}
+							}
+							
+							if (oldName != null) {
+								groupNameIpMap.put(newName, oldIp);
+								groupNameIpMap.remove(oldName);
+								
+								if (activityListener != null) {
+									activityListener.onGroupNameChange(oldName, newName, oldIp);
 								}
 							}
 						}
@@ -263,7 +302,7 @@ public class UnderlyingService {
 		timeoutMap.put(replyId, future);
 	}
 	
-	private void startRequestLatestMessageTimeout(String replyId) {
+	private void startRequestLatestMessageTimeout(String groupName, String replyId) {
 		executorService.schedule(new Runnable() {
 
 			@Override
@@ -273,7 +312,7 @@ public class UnderlyingService {
 					listener.onTimeout();
 				}
 				if (activityListener != null) {
-					activityListener.onRequestLatestMessageResult(latestMessagesBuffer);
+					activityListener.onRequestLatestMessageResult(groupName, latestMessagesBuffer);
 				}
 				latestMessagesBuffer.clear();
 			}
@@ -285,9 +324,8 @@ public class UnderlyingService {
 		future.cancel(true);
 	}
 	
-	private static List<String> getArguments(String prefix, String message) {
-		String argumentPortion = message.substring(prefix.length());
-		return Arrays.stream(argumentPortion.split(DELIMITER)).map(p -> p.trim()).collect(Collectors.toList());
+	private static List<String> getArguments(String message) {
+		return Arrays.stream(message.split(DELIMITER)).map(p -> p.trim()).collect(Collectors.toList());
 	}
 	
 	
@@ -302,9 +340,13 @@ public class UnderlyingService {
 		ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
 		byteBuffer.put(prefix.getBytes());
 		byteBuffer.position(PREFIX_SIZE);
-		byteBuffer.put(String.join(DELIMITER, args).getBytes());
+		System.out.println("createMessage remaining: " + byteBuffer.remaining());
+		byte[] data = Utility.trimZeros(String.join(DELIMITER, args)).getBytes();
+		byteBuffer.put(data);
 		
 		
 		return byteBuffer.array();
 	}
+	
+	
 }
